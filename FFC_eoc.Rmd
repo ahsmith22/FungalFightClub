@@ -1,0 +1,153 @@
+---
+title: "FFC_eoc"
+author: "Alex Smith"
+date: "6/4/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(Rmisc)
+library(tidyverse)
+
+# read in data
+final_data_eoc = read_csv("~/FungalFightClub/finaldata1.csv")
+
+# constants
+fungi = c("A","C","H","L","P")
+pH = c(5,7)
+value = c("r","K")
+```
+
+```{r data}
+# format and clean data
+final_data_eoc = final_data_eoc[,c(1:4,7)]
+final_data_eoc$cont_ID = ifelse(substr(final_data_eoc$Plate_ID,2,2) == "v", "v",
+                  ifelse(substr(final_data_eoc$Plate_ID,2,2) == "s", "s", 0)) # v for svs control, s for single control, 0 for pair
+final_data_eocp = final_data_eoc[final_data_eoc$cont_ID==0,]
+final_data_eocc = final_data_eoc[final_data_eoc$cont_ID=="v"|final_data_eoc$cont_ID=="s",]
+
+# format pairs
+final_data_eocp$Fun_ID = toupper(final_data_eocp$Plug_ID) # Fungal ID (A, C, H, L, or P)
+final_data_eocp$Plug_ID = paste(final_data_eocp$Plug_ID, final_data_eocp$Plate_ID, sep = "") # For pair plates, ID of plug
+final_data_eocp$PH_ID = substr(final_data_eocp$Plate_ID, 3, 3) # pH of medium
+final_data_eocp$opp_ID = ifelse(final_data_eocp$Fun_ID == substr(final_data_eocp$Plate_ID, 1, 1), substr(final_data_eocp$Plate_ID, 2, 2), substr(final_data_eocp$Plate_ID, 1, 1)) # For pair plates, ID of opponent plug
+
+# format controls
+final_data_eocc$Fun_ID = substr(final_data_eocc$Plate_ID, 1, 1)
+final_data_eocc$cont_ID = substr(final_data_eocc$Plate_ID, 2, 2) # either s or v
+final_data_eocc$PH_ID = substr(final_data_eocc$Plate_ID, 3, 3)
+final_data_eocc$Plug_ID = paste(substr(final_data_eocc$Plate_ID, 1, 1), final_data_eocc$Plate_ID, sep = "")
+final_data_eocc$opp_ID = ifelse(final_data_eocc$cont_ID=="v", substr(final_data_eocc$Plate_ID, 1, 1), "N") # v for svs and N for none
+
+# combine
+final_data_eoc = rbind(final_data_eocp, final_data_eocc)
+final_data_eoc = final_data_eoc[,c(1,7,6,8,2,9,3,5)]
+```
+
+```{r eoc calc}
+# calculate the effect of competition metric
+final_data_eoc = final_data_eoc[final_data_eoc$cont_ID!="s",]
+blank = as.data.frame(matrix(nrow=nrow(final_data_eoc), ncol=12)) # create blank matrix for eoc calc
+final_data_eoc = cbind(final_data_eoc, blank)
+colnames(final_data_eoc) = c("Plate_ID","Fun_ID","cont_ID","PH_ID","Plug_ID","opp_ID","r","K","01","02","03","04","05","06","07","08","09","10","mean_r","mean_K")
+
+for (u in 1:length(value)) { # iterate for r and K
+  for (x in 1:length(fungi)) { # iterate for each fungi
+    for (w in 1:length(pH)) { # iterate for each pH
+      funT = final_data_eoc[final_data_eoc$Fun_ID==fungi[x]&final_data_eoc$PH_ID==pH[w],] # this Fun and pH
+      svsT = funT[funT$cont_ID=="v",] # all svs for this Fun and pH
+      parT = funT[funT$cont_ID==0,] # all pairs for this Fun and pH
+      oppT = as.factor(parT$opp_ID) # all opp fungi factor
+      oppT = as.vector(levels(oppT)) # change to vector
+      for (v in 1:length(oppT)) {
+        par1T = funT[funT$opp_ID==oppT[v],] # 1 opp pair
+        eocTa = as.data.frame(matrix(nrow=nrow(svsT),ncol=nrow(par1T))) # matrix rows = svs, cols = 1 opp pair
+        for (y in 1:nrow(svsT)) {
+          for (z in 1:nrow(par1T)) {
+            logratio_eoc = log(par1T[z,value[u]]/svsT[y,value[u]]) # compute eoc
+            eocTa[z,y] = logratio_eoc 
+          }
+        }
+        final_data_eoc[final_data_eoc$Fun_ID==fungi[x] & final_data_eoc$PH_ID==pH[w] & final_data_eoc$opp_ID==oppT[v],c(9:18)] <- eocTa # store values in parent df
+      }
+    }
+  }
+  colnam = paste("mean",value[u],sep="_")
+  final_data_eoc[[colnam]] = rowMeans(final_data_eoc[,c(9:18)], na.rm=TRUE) # compute ave eoc for each svs
+}
+
+#write_csv(final_data_eoc, "~/FungalFightClub/final_data_eoc.csv")
+```
+
+```{r rwin}
+# calc number of replicates
+ffc_n = as.data.frame(base::table(final_data_eoc[final_data_eoc$cont_ID==0, "Plug_ID"]))
+ffc_n$Fungi = paste(toupper(substr(ffc_n$Var1,1,1)), substr(ffc_n$Var1,4,4), sep="") 
+ffc_n = ffc_n %>% 
+  group_by(Fungi) %>% 
+  dplyr::summarise(nfun = sum(Freq))
+
+# calc r wins
+final_data_eoc = final_data_eoc %>% 
+  group_by(Plate_ID) %>% 
+  dplyr::mutate(rwin = paste(Fun_ID[which.max(r)], substr(PH_ID,1,1), sep=""))
+ffc_rwin = as.data.frame(base::table(final_data_eoc[final_data_eoc$cont_ID==0,"rwin"]))
+colnames(ffc_rwin) = c("Fungi", "rwins")
+ffc_rwin$rwins = ffc_rwin$rwins/2
+```
+
+```{r reaction type}
+# read in rt data
+ffc_rt = read_csv("~/FungalFightClub/FFC Treatments - Reaction Types.csv")
+ffc_rt = ffc_rt[,1:3]
+colnames(ffc_rt) = c("Plate_ID", "Fungi", "RT")
+ffc_rt$Fungi = paste(toupper(ffc_rt$Fungi), substr(ffc_rt$Plate_ID,3,3), sep="")
+ffc_rt_final = ffc_rt %>% # create combined df
+  group_by(Fungi) %>% 
+  dplyr::summarise(IOA = sum(RT)) %>% 
+  left_join(ffc_rwin) %>% 
+  left_join(ffc_n)
+ffc_rt_final[is.na(ffc_rt_final)] = 0
+ffc_rt_final$rwinper = ffc_rt_final$rwins/ffc_rt_final$nfun*100 # take into account replicate number
+
+# mean and SE for r/K
+summary_r = summarySE(final_data_eoc[final_data_eoc$cont_ID==0,], measurevar = "r", groupvars = c("Fun_ID","PH_ID"), na.rm=TRUE)
+summary_K = summarySE(final_data_eoc[final_data_eoc$cont_ID==0,], measurevar = "K", groupvars = c("Fun_ID","PH_ID"), na.rm=TRUE)
+ffc_rt_final = ffc_rt_final %>% 
+  dplyr::mutate(meanr = summary_r$r, meanK = summary_K$K, SEr = summary_r$se, SEK = summary_K$se)
+
+# reaction type scores separated by category
+ffc_rt_sep = ffc_rt[,c(2:3)]
+ffc_rt_sep$Fun_ID = toupper(substr(ffc_rt_sep$Fungi,1,1))
+ffc_rt_sep$PH_ID = substr(ffc_rt_sep$Fungi,2,2)
+
+for (i in 1:length(pH)) {
+  for (x in 1:length(fungi)) {
+    sub = ffc_rt_sep[ffc_rt_sep$Fun_ID==fungi[x]&ffc_rt_sep$PH_ID==as.character(pH[i]),]
+    temprt = as.data.frame(base::table(sub$RT))
+    temprt$Fun_ID = fungi[x]
+    temprt$PH_ID = as.character(pH[i])
+    
+    if(i==1&x==1){
+    sep_rt_fin = temprt
+    }
+    else{
+    sep_rt_fin = rbind(sep_rt_fin,temprt)
+    }
+  }
+}
+
+# change to point value
+sep_rt_fin = spread(sep_rt_fin,key="Var1",value="Freq")
+sep_rt_fin$`0` = sep_rt_fin$`0`*0
+sep_rt_fin$`1` = sep_rt_fin$`1`*1
+sep_rt_fin$`2` = sep_rt_fin$`2`*2
+sep_rt_fin$`3` = sep_rt_fin$`3`*3
+sep_rt_fin$`4` = sep_rt_fin$`4`*4
+sep_rt_fin$sum = rowSums(sep_rt_fin[,4:7], na.rm=TRUE)
+sep_rt_fin = sep_rt_fin[,c(1,2,4,6,5,7,8)]
+colnames(sep_rt_fin) = c("Fun_ID","PH_ID","1","2","3","4","sum")
+```
+

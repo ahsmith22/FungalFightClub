@@ -1,0 +1,215 @@
+---
+title: "FFC_Model"
+author: "Alex Smith"
+date: "6/4/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(sciplot)
+
+pairdata <- read.csv("~/FungalFightClub/FFC Treatments - Pairwise.csv", header=TRUE)
+pairdata = pairdata[pairdata$X == "",]
+
+svsdata <- read.csv("~/FungalFightClub/FFC Treatments - Controls SVS.csv", header=TRUE)
+svsdata = svsdata[svsdata$X == "",]
+
+sgdata <- read.csv("~/FungalFightClub/FFC Treatments - Controls.csv", header=TRUE)
+sgdata = sgdata[sgdata$X == "",]
+
+
+days_pair = c(6, 10, 14, 18, 24, 32, 40, 47)
+days_cont = c(5, 9, 13, 17, 23, 31, 39)
+```
+
+# Let's compute growth rate and K for all of the pairs
+```{r, fig.height=4, fig.width = 5}
+# Let's look at all the data!
+pairdata$r <- NaN # holds estimate of initial growth rate
+pairdata$r.pval <- NaN # holds estimate of initial growth rate p value
+pairdata$r.R2 <- NaN # holds estimate of initial growth rate R2
+pairdata$r.F <- NaN # holds estimate of initial growth rate F statistic
+pairdata$K <- NaN # holds estimate of max size
+t.simu <- seq(from = 0, to = (max(days_pair)-min(days_pair)), length.out = 100) # this is a placeholder simulation timeseries for the exponential growth fit
+rowsperfig <- 4
+colsperfig <- 5
+for(i in 1:dim(pairdata)[1]){ # for every line of data
+  if((i-1)%%(rowsperfig*colsperfig) == 0){   # plot results in 30-panel figures -- basically checks to see if the i'th step in the for loop is divisible by 30. If it is, then it makes a new figure.
+        par(mar=c(1,1,1,1),mfrow=c(rowsperfig,colsperfig))
+    }
+  
+  hold <- pairdata[i,3:10]
+  
+  plot(days_pair,hold, las=1,xlab='Experimental Day', ylab='Colony area',main=paste(pairdata[i,1],pairdata[i,2],sep='.'),ylim=c(min(pairdata[,3],na.rm=TRUE),max(pairdata[,10],na.rm=TRUE)),log='y')
+  
+  tester <- hold[!is.na(hold)] # We want to prevent the function from crashing if it runs into a colony which was thrown out (all NA data). First, create a 'tester' variable that only contains data from hold that isn't 'NaN'. 
+  if(length(tester)!=0){  # Second, only enter into the growth rate calculation, if tester contains some data. (In other words, if it's not of length 0)
+  
+  areahold <- rep(NaN,length(hold)) # for some weird reason, R is treating hold as a list instead of a vector. So we built a new vector with the contents of hold.
+  for(j in 1:length(hold)){
+     areahold[j] <- hold[1,j]
+  }
+  
+  initialdaycutoff <- 3
+  
+  lm1 <- lm(log(areahold[1:initialdaycutoff])~days_pair[1:initialdaycutoff])
+  pairdata$r[i] <- summary(lm1)$coefficients[2,1] # Use a linear model to estimate the slope of the first few datapoints to get an estimate for r
+  pairdata$r.pval[i] <- summary(lm1)$coefficients[2,4] #extracts the p value
+  pairdata$r.R2[i] <- summary(lm1)$r.squared # extracts the R2 fit value
+  pairdata$r.F[i] <- summary(lm1)$fstatistic[1] # extracts the f-statistic
+  pairdata$K[i] <- max(areahold,na.rm=TRUE) # estimates K as the maximum area
+  
+  P.simu <- areahold[1]*exp(pairdata$r[i]*t.simu) # Simulation of the population, if it were growing exponentially according to your estimate for r
+  P.simu.K <- pairdata$K[i]*areahold[1]*exp(pairdata$r[i]*t.simu)/(pairdata$K[i]+areahold[1]*(exp(pairdata$r[i]*t.simu)-1)) # Simulation of the population, if it were growing exponentially according to your estimate for r
+  
+  lines(t.simu+min(days_pair),(P.simu), col='blue')
+  lines(t.simu+min(days_pair),P.simu.K,col='red')
+  
+  }
+  
+}
+```
+# Svs controls
+```{r, fig.height=4, fig.width = 5}
+# Let's look at all the data!
+svsdata$r <- NaN # holds estimate of initial growth rate
+svsdata$r.pval <- NaN # holds estimate of initial growth rate p value
+svsdata$r.R2 <- NaN # holds estimate of initial growth rate R2
+svsdata$r.F <- NaN # holds estimate of initial growth rate F statistic
+svsdata$K <- NaN # holds estimate of max size
+t.simu <- seq(from = 0, to = (max(days_cont)-min(days_cont)), length.out = 100) # this is a placeholder simulation timeseries for the exponential growth fit
+rowsperfig <- 4
+colsperfig <- 5
+for(i in 1:dim(svsdata)[1]){ # for every line of data
+  if((i-1)%%(rowsperfig*colsperfig) == 0){   # plot results in 30-panel figures -- basically checks to see if the i'th step in the for loop is divisible by 30. If it is, then it makes a new figure.
+        par(mar=c(1,1,1,1),mfrow=c(rowsperfig,colsperfig))
+    }
+  
+  hold <- svsdata[i,3:9]
+  
+  plot(days_cont,hold, las=1,xlab='Experimental Day', ylab='Colony area',main=paste(svsdata[i,1],svsdata[i,2],sep='.'),ylim=c(min(svsdata[,3],na.rm=TRUE),1.2*max(svsdata[,7],na.rm=TRUE)),log='y')
+  
+  tester <- hold[!is.na(hold)] # We want to prevent the function from crashing if it runs into a colony which was thrown out (all NA data). First, create a 'tester' variable that only contains data from hold that isn't 'NaN'. 
+  if(length(tester)!=0){  # Second, only enter into the growth rate calculation, if tester contains some data. (In other words, if it's not of length 0)
+  
+  areahold <- rep(NaN,length(hold)) # for some weird reason, R is treating hold as a list instead of a vector. So we built a new vector with the contents of hold.
+  for(j in 1:length(hold)){
+     areahold[j] <- hold[1,j]
+  }
+  
+  initialdaycutoff <- 3
+  
+  lm1 <- lm(log(areahold[1:initialdaycutoff])~days_cont[1:initialdaycutoff])
+  svsdata$r[i] <- summary(lm1)$coefficients[2,1] # Use a linear model to estimate the slope of the first few datapoints to get an estimate for r
+  svsdata$r.pval[i] <- summary(lm1)$coefficients[2,4] #extracts the p value
+  svsdata$r.R2[i] <- summary(lm1)$r.squared # extracts the R2 fit value
+  svsdata$r.F[i] <- summary(lm1)$fstatistic[1] # extracts the f-statistic
+  svsdata$K[i] <- max(areahold,na.rm=TRUE) # estimates K as the maximum area
+  
+  P.simu <- areahold[1]*exp(svsdata$r[i]*t.simu) # Simulation of the population, if it were growing exponentially according to your estimate for r
+  P.simu.K <- svsdata$K[i]*areahold[1]*exp(svsdata$r[i]*t.simu)/(svsdata$K[i]+areahold[1]*(exp(svsdata$r[i]*t.simu)-1)) # Simulation of the population, if it were growing exponentially according to your estimate for r
+  
+  lines(t.simu+min(days_cont),(P.simu), col='blue')
+  lines(t.simu+min(days_cont),P.simu.K,col='red')
+  
+  }
+  
+}
+```
+# Single Controls
+```{r, fig.height=4, fig.width = 5}
+# Let's look at all the data!
+sgdata$r <- NaN # holds estimate of initial growth rate
+sgdata$r.pval <- NaN # holds estimate of initial growth rate p value
+sgdata$r.R2 <- NaN # holds estimate of initial growth rate R2
+sgdata$r.F <- NaN # holds estimate of initial growth rate F statistic
+sgdata$K <- NaN # holds estimate of max size
+t.simu <- seq(from = 0, to = (max(days_cont)-min(days_cont)), length.out = 100) # this is a placeholder simulation timeseries for the exponential growth fit
+rowsperfig <- 4
+colsperfig <- 5
+for(i in 1:dim(sgdata)[1]){ # for every line of data
+  if((i-1)%%(rowsperfig*colsperfig) == 0){   # plot results in 30-panel figures -- basically checks to see if the i'th step in the for loop is divisible by 30. If it is, then it makes a new figure.
+        par(mar=c(1,1,1,1),mfrow=c(rowsperfig,colsperfig))
+    }
+  
+  hold <- sgdata[i,2:8]
+  
+  plot(days_cont,hold, las=1,xlab='Experimental Day', ylab='Colony area',main=paste(sgdata[i,1],sep=''),ylim=c(min(sgdata[,2],na.rm=TRUE),1.2*max(sgdata[,5],na.rm=TRUE)),log='y')
+  
+  tester <- hold[!is.na(hold)] # We want to prevent the function from crashing if it runs into a colony which was thrown out (all NA data). First, create a 'tester' variable that only contains data from hold that isn't 'NaN'. 
+  if(length(tester)!=0){  # Second, only enter into the growth rate calculation, if tester contains some data. (In other words, if it's not of length 0)
+  
+  areahold <- rep(NaN,length(hold)) # for some weird reason, R is treating hold as a list instead of a vector. So we built a new vector with the contents of hold.
+  for(j in 1:length(hold)){
+     areahold[j] <- hold[1,j]
+  }
+  
+  initialdaycutoff <- 3
+  
+  lm1 <- lm(log(areahold[1:initialdaycutoff])~days_cont[1:initialdaycutoff])
+  sgdata$r[i] <- summary(lm1)$coefficients[2,1] # Use a linear model to estimate the slope of the first few datapoints to get an estimate for r
+  sgdata$r.pval[i] <- summary(lm1)$coefficients[2,4] #extracts the p value
+  sgdata$r.R2[i] <- summary(lm1)$r.squared # extracts the R2 fit value
+  sgdata$r.F[i] <- summary(lm1)$fstatistic[1] # extracts the f-statistic
+  sgdata$K[i] <- max(areahold,na.rm=TRUE) # estimates K as the maximum area
+  
+  P.simu <- areahold[1]*exp(sgdata$r[i]*t.simu) # Simulation of the population, if it were growing exponentially according to your estimate for r
+  P.simu.K <- sgdata$K[i]*areahold[1]*exp(sgdata$r[i]*t.simu)/(sgdata$K[i]+areahold[1]*(exp(sgdata$r[i]*t.simu)-1)) # Simulation of the population, if it were growing exponentially according to your estimate for r
+  
+  lines(t.simu+min(days_cont),(P.simu), col='blue')
+  lines(t.simu+min(days_cont),P.simu.K,col='red')
+  
+  }
+  
+}
+```
+
+# Bind the data together
+```{r}
+# bind pairs and control together
+pairdata1 = pairdata[c(1,2,12:16)]
+svsdata1 = svsdata[c(1,2,11:15)]
+sgdata1 = sgdata[c(1,10:14)]
+sgdata1$Plug_ID = NA
+svsdata1[,1] = as.character(svsdata1[,1])
+svsdata1[,2] = as.character(svsdata1[,2])
+svsdata2 = as.data.frame(matrix(nrow = nrow(svsdata1)/2, ncol = ncol(svsdata1)))
+set.seed(1)
+for (x in 1:(nrow(svsdata1)/2)) { # randomly choose a plug from svs controls
+  svsdata2[x,1] = svsdata1[2*x-1,1]
+  rand = runif(1)
+  for (t in 2:7) {
+    svsdata2[x,t] = ifelse(rand<0.5, svsdata1[svsdata1[,1]==svsdata2[x,1]&svsdata1[,2]=="a",t], svsdata1[svsdata1[,1]==svsdata2[x,1]&svsdata1[,2]=="b",t])
+  }
+}
+colnames(svsdata2) = colnames(svsdata1)
+finaldata = rbind(pairdata1,svsdata2)
+finaldata1 = rbind(pairdata1,svsdata2,sgdata1)
+finaldata$SpPair <- substr(finaldata$Plate_ID,1,2)
+finaldata$pH <- substr(finaldata$Plate_ID,3,3)
+finaldata$Sp.Treat <- paste(finaldata$Plug_ID,finaldata$SpPair,finaldata$pH,sep='.')
+finaldata$Treat <- paste(finaldata$SpPair,finaldata$pH,sep='.')
+finaldata$Fun <- ifelse(substr(finaldata$Plate_ID, 2, 2)=="v", substr(finaldata$Plate_ID, 1, 1), toupper(finaldata$Plug_ID))
+finaldata$Fun = as.factor(finaldata$Fun)
+finaldata$opp <- ifelse(substr(finaldata$Plate_ID, 2, 2)=="v", substr(finaldata$Plate_ID, 1, 1), 
+                   ifelse(toupper(finaldata$Plug_ID)==substr(finaldata$Plate_ID, 1, 1), substr(finaldata$Plate_ID, 2, 2), substr(finaldata$Plate_ID, 1, 1)))
+
+#write_csv(finaldata1, "~/FungalFightClub/finaldata1.csv")
+```
+
+# Let's graph some results!
+```{r}
+boxplot(r~Sp.Treat,data=finaldata,las=1,col=c(rep('dodgerblue',4),rep('coral4',4)),ylab='Growth Rate',xlab='Species.Treatment')
+boxplot(K~Sp.Treat,data=finaldata,las=1,col=c(rep('dodgerblue',4),rep('coral4',4)),ylab='Max Size',xlab='Species.Treatment')
+par(mar=c(4,4,1,1),mfrow=c(3,2))
+for(i in 1:length(levels(finaldata$Fun))){
+  subdat <- finaldata[finaldata$Fun==levels(finaldata$Fun)[i],]
+  boxplot(r~Treat,data=subdat,las=1,ylim=c(min(finaldata$r,na.rm = T),max(finaldata$r, na.rm=T)),col=c('cornsilk2','cadetblue3'),names=)
+}
+par(mar=c(4,4,1,1),mfrow=c(3,2))
+for(i in 1:length(levels(finaldata$Fun))){
+  subdat <- finaldata[finaldata$Fun==levels(finaldata$Fun)[i],]
+  boxplot(K~Treat,data=subdat,las=1,ylim=c(min(finaldata$K,na.rm = T),max(finaldata$K, na.rm=T)),col=c('cornsilk2','cadetblue3'))
+}
+```

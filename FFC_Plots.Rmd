@@ -1,0 +1,163 @@
+---
+title: "FFC_Plots"
+author: "Alex Smith"
+date: "6/8/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(cowplot)
+
+# read in data
+final_data_eoc = read_csv("~/FungalFightClub/final_data_eoc.csv")
+Tuk_final = read_csv("~/FungalFightClub/Tuk_final.csv")
+
+# constants
+fungi = c("A","C","H","L","P")
+pH = c(5,7)
+value = c("r","K")
+
+```
+
+#Svs Plot
+```{r svs}
+# labels
+labs = data.frame(main=c("(a) Amanita muscaria","(b) Cenococcum geophilum","(c) Hebeloma cylindrosporum","(d) Laccaria bicolor","(e) Paxillus involutus"), letter=c("(a)","(b)","(c)","(d)","(e)"), nams=c("A. muscaria","C. geophilum","H. cylindrosporum","L. bicolor","P. involutus"), x=c(-0.3,-0.41,-0.44,-0.27,-0.3), y=c(1,1,1,1,1))
+
+# create svs only df
+final_data_svs = final_data_eoc[final_data_eoc$cont_ID=="v",c(1:4,7,8)]
+final_data_svs = gather(final_data_svs, "key", "value", -Plate_ID, -Fun_ID, -cont_ID, -PH_ID)
+final_data_svs$PH_ID = as.character(final_data_svs$PH_ID)
+
+# take control only stats and configure stat labels
+Tuk_final = Tuk_final[Tuk_final$p1.f==Tuk_final$p2.f&Tuk_final$p2.f==Tuk_final$Fun,]
+Tuk_final$sig = ifelse(0.01<Tuk_final$`p adj`&Tuk_final$`p adj`<=0.05,"*",
+                ifelse(0.001<Tuk_final$`p adj`&Tuk_final$`p adj`<=0.01,"**","***"))
+Tuk_final$x = c(1.8,2.8,3.8,4.8,1.8,2.8,3.8)
+Tuk_final$xend = c(2.2,3.2,4.2,5.2,2.2,3.2,4.2)
+Tuk_final$y = c(0.19,0.3,0.27,0.32,6.5,12,10)
+Tuk_final$xlab = c(2,3,4,5,2,3,4)
+Tuk_final$ylab = c(0.20,0.32,0.28,0.33,6.6,13,10.5)
+
+# plot growth rate of svs
+svsplot_r = ggplot(final_data_svs[final_data_svs$key=="r",], aes(Fun_ID, value)) + 
+    theme_cowplot() +
+    geom_boxplot(outlier.alpha = 0, aes(fill=PH_ID), color="black", width=0.75) +
+    geom_point(position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.9), aes(Fun_ID,value,fill = PH_ID,alpha=0.7)) +
+    ylab(bquote('growth rate ('*cm^2*'/day)')) +
+    scale_x_discrete(labels = labs$nams) +
+    geom_vline(xintercept = c(1.5,2.5,3.5,4.5), linetype=2, size=0.25) +
+    geom_segment(data = Tuk_final[1:4,], aes(x=x,xend=xend,y=y,yend=y),color = "black") + 
+    geom_text(data = Tuk_final[1:4,], aes(xlab, ylab, label = sig)) +
+    theme(legend.position = "none", axis.line.x = element_blank(), axis.ticks.x = element_blank(), axis.title.x = element_blank(), plot.margin = unit(c(1,0,1,1), "cm"), axis.text.x = element_text(face="italic", angle=330, size=10), axis.title.y = element_text(size = 11))
+# ggsave("svsplot_r.png", width = 7, height = 5)
+
+# plot colony size of svs
+svsplot_K = ggplot(final_data_svs[final_data_svs$key=="K",], aes(Fun_ID, value)) + 
+    theme_cowplot() +
+    geom_boxplot(outlier.alpha = 0, aes(fill=PH_ID), color="black", width=0.75) +
+    geom_point(position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.9), aes(Fun_ID,value,fill = PH_ID,alpha=0.7)) +
+    ylab(bquote('colony size ('*cm^2*')')) +
+    scale_x_discrete(labels = labs$nams) +
+    geom_vline(xintercept = c(1.5,2.5,3.5,4.5), linetype=2, size=0.25) +
+    geom_segment(data = Tuk_final[5:7,], aes(x=x,xend=xend,y=y,yend=y),color = "black") + 
+    geom_text(data = Tuk_final[5:7,], aes(xlab, ylab, label = sig)) +
+    theme(legend.position = "none", axis.line.x = element_blank(), axis.ticks.x = element_blank(), axis.title.x = element_blank(), plot.margin = unit(c(1,0,1,1), "cm"), axis.text.x = element_text(face="italic", angle=330, size=10), axis.title.y = element_text(size = 11))
+# ggsave("svsplot_K.png", width = 7, height = 5)
+
+```
+
+#EOC Plot
+```{r eoc}
+# annotation df for svs sig
+sig_svs_fin = sig_svs_fin[sig_svs_fin$p1.pH==sig_svs_fin$p2.pH,]
+annot_svs = as.data.frame(sig_svs_fin[,3])
+annot_svs$Fun_ID = sig_svs_fin$Fun
+annot_svs$PH_ID = sig_svs_fin$p1.pH
+annot_svs$pair_ID = ifelse(annot_svs$Fun_ID==sig_svs_fin$p1.f,sig_svs_fin$p2.f,sig_svs_fin$p1.f)
+annot_svs$key = sig_svs_fin$key
+annot_svs$sig = ifelse(0.01<annot_svs$`sig_svs_fin[, 3]`&annot_svs$`sig_svs_fin[, 3]`<=0.05,"*",
+                ifelse(0.001<annot_svs$`sig_svs_fin[, 3]`&annot_svs$`sig_svs_fin[, 3]`<=0.01,"**","***"))
+annot_svs$x = c(2.2,5.2,0.8,1.2,2.8,3.8,4.2,5.2,1.2,2.2,4.2,5.2,0.8,1.2,1.8,2.2,2.8,3.2,4.8,5.2,1.2,2.2,2.8,3.2,3.8,4.2,4.8,2.2,1.2,2.8,3.8,4.8,3.2,0.8,1.2,2.2,3.8,4.8,4.2,5.2,0.8,1.2,1.8,2.2,2.8,3.2,0.8,1.2,1.8,2.2,2.8,3.2,3.8,4.2)
+for (i in 1:nrow(sig_svs_fin_r)) {
+  annot_svs$ymax[i] = max(final_data_psf[final_data_psf$Fun_ID==annot_svs$Fun_ID[i]&final_data_psf$PH_ID==annot_svs$PH_ID[i]&final_data_psf$opp_ID==annot_svs$pair_ID[i],"mean_r"])
+}
+for (i in (1+nrow(sig_svs_fin_r)):(nrow(sig_svs_fin_K)+nrow(sig_svs_fin_r))) {
+  annot_svs$ymax[i] = max(final_data_psf[final_data_psf$Fun_ID==annot_svs$Fun_ID[i]&final_data_psf$PH_ID==annot_svs$PH_ID[i]&final_data_psf$opp_ID==annot_svs$pair_ID[i],"mean_K"])
+}
+annot_svs$y = ifelse(abs(annot_svs$ymax)<0.12 | annot_svs$key=="K"&abs(annot_svs$ymax)<0.25, (abs(annot_svs$ymax*0.6)) + annot_svs$ymax, (abs(annot_svs$ymax*0.2)) + annot_svs$ymax)
+annot_svs$y = ifelse(abs(annot_svs$y)<0.03,annot_svs$y + 0.05,annot_svs$y)
+annot_svs$y = ifelse(annot_svs$key=="K"& abs(annot_svs$y)<0.1,annot_svs$y + 0.2,annot_svs$y)
+
+# annotation df for eoc sig
+sig_eoc_fin$sig = ifelse(0.01<sig_eoc_fin$`p adj`&sig_eoc_fin$`p adj`<=0.05,"*",
+                ifelse(0.001<sig_eoc_fin$`p adj`&sig_eoc_fin$`p adj`<=0.01,"**","***"))
+sig_eoc_fin$x = c(2.8,3.8,0.8,1.8,3.8,4.8,1.8,1.8,3.8,2.8,1.8,3.8,2.8,1.8,2.8)
+sig_eoc_fin$xend = sig_eoc_fin$x + 0.4
+for (i in 1:nrow(sig_reoc_fin)) {
+  sig_eoc_fin$ymax[i] = max(final_data_psf[final_data_psf$Fun_ID==sig_eoc_fin$Fun[i]&final_data_psf$opp_ID==sig_eoc_fin$p1.f[i],"mean_r"])
+}
+for (i in (1+nrow(sig_reoc_fin)):(nrow(sig_Keoc_fin)+nrow(sig_reoc_fin))) {
+  sig_eoc_fin$ymax[i] = max(final_data_psf[final_data_psf$Fun_ID==sig_eoc_fin$Fun[i]&final_data_psf$opp_ID==sig_eoc_fin$p1.f[i],"mean_K"])
+}
+sig_eoc_fin$y = ifelse(sig_eoc_fin$key=="r"&sig_eoc_fin$ymax<0.4, sig_eoc_fin$ymax + 0.15, sig_eoc_fin$ymax + 0.3)
+sig_eoc_fin$y[8] = sig_eoc_fin$y[8] + 0.2
+for (i in 1:nrow(sig_eoc_fin)) {
+  sig_eoc_fin$xlab[i] = mean(c(sig_eoc_fin$x[i],sig_eoc_fin$xend[i]))
+}
+sig_eoc_fin$ylab = sig_eoc_fin$y + 0.05
+
+psfplots = vector(mode="list", length=5)
+for(i in 1:length(fungi)){
+  subdat <- final_data_psf[final_data_psf$Fun_ID==fungi[i],]
+  psfplots[[i]] = ggplot(subdat, aes(opp_ID,mean_r)) +
+    theme_cowplot() +
+    geom_boxplot(outlier.alpha = 0, aes(fill=PH_ID), color="black") +
+    geom_point(position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.9), aes(opp_ID,mean_r,fill = PH_ID,alpha=0.7)) +
+    scale_y_continuous(breaks=c(-1,-0.75,-0.5,-0.25,0,0.25,0.5,0.75,1)) +
+    geom_hline(yintercept=0, size=0.35) +
+    geom_vline(xintercept = c(1.5,2.5,3.5,4.5), linetype=2, size=0.25) +
+    theme(legend.position = "none", axis.line.x = element_blank(), axis.ticks.x = element_blank(), plot.margin = unit(c(1,1,0.5,0), "cm"), axis.title.x = element_blank(), axis.text.x = element_blank()) +
+    ylab("EOC (r)")
+}
+for(i in 1:length(fungi)){
+  subdat <- final_data_psf[final_data_psf$Fun_ID==fungi[i],]
+  psfplots[[i+5]] = ggplot(subdat, aes(opp_ID,mean_K)) +
+    theme_cowplot() +
+    geom_boxplot(outlier.alpha = 0, aes(fill=PH_ID), color="black") +
+    geom_point(position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.9), aes(opp_ID,mean_K,fill = PH_ID,alpha=0.7)) +
+    scale_y_continuous(breaks=c(-1,-0.75,-0.5,-0.25,0,0.25,0.5,0.75,1,1.25,1.5)) +
+    geom_hline(yintercept=0, size=0.35) +
+    geom_vline(xintercept = c(1.5,2.5,3.5,4.5), linetype=2, size=0.25) +
+    theme(legend.position = "none", axis.line.x = element_blank(), axis.ticks.x = element_blank(), plot.margin = unit(c(1,1,0.5,0), "cm"), axis.title.x = element_blank(), axis.text.x = element_blank()) +
+    ylab("EOC (K)")
+}
+
+# add annotations for svs sig
+plotnum = c(1,1,rep(2,6),3,3,3,3,rep(4,8),rep(5,6),6,6,rep(7,5),rep(8,7),rep(9,6),rep(10,8))
+for (i in 1:nrow(annot_svs)) {
+  psfplots[[plotnum[i]]] = psfplots[[plotnum[i]]] + geom_text(data=annot_svs[i,], aes(x,y, label=sig))
+}
+
+# add annotations for eoc sig
+plotnum1 = c(2,2,3,3,3,3,5,6,6,7,8,8,9,10,10)
+for (i in 1:nrow(sig_eoc_fin)) {
+  psfplots[[plotnum1[i]]] = psfplots[[plotnum1[i]]] + geom_segment(data = sig_eoc_fin[i,], aes(x=x,xend=xend,y=y,yend=y),color = "black") + geom_text(data = sig_eoc_fin[i,], aes(xlab, ylab, label = sig))
+}
+# fix plot 6
+psfplots[[6]] = psfplots[[6]] + scale_y_continuous(breaks=c(-1,-0.50,0,0.5,1,1.5,2))
+
+# add opp_ID to bottom plots
+psfplots[[5]] = psfplots[[5]] + scale_x_discrete(labels = labs$nams) + theme(axis.text.x = element_text(face="italic", angle=330, size=10))
+psfplots[[10]] = psfplots[[10]] + scale_x_discrete(labels = labs$nams) + theme(axis.text.x = element_text(face="italic", angle=330, size=10))
+
+p3=plot_grid(psfplots[[1]],psfplots[[2]],psfplots[[3]],psfplots[[4]],psfplots[[5]],nrow=5,ncol=1,rel_heights= c(1,1,1,1,1.25))
+p4=plot_grid(psfplots[[6]],psfplots[[7]],psfplots[[8]],psfplots[[9]],psfplots[[10]],nrow=5,ncol=1,rel_heights= c(1,1,1,1,1.25))
+plot_grid(p3,p4,nrow=1,ncol=2)
+
+
+
+```

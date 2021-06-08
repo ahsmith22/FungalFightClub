@@ -1,0 +1,108 @@
+---
+title: "FFC_Stats"
+author: "Alex Smith"
+date: "6/4/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+library(tidyverse)
+library(vegan)
+
+
+# read in data
+final_data_eoc = read_csv("~/FungalFightClub/final_data_eoc.csv")
+final_data_eoc = final_data_eoc[final_data_eoc$cont_ID!="s",]
+final_data_eoc$PH_ID = as.factor(final_data_eoc$PH_ID)
+final_data_eoc$opp_ID = as.factor(final_data_eoc$opp_ID)
+
+# constants
+fungi = c("A","C","H","L","P")
+pH = c(5,7)
+value = c("r","K")
+```
+
+#Stats
+```{r stats}
+
+for(i in 1:length(fungi)){
+  
+  # find significant differences in EOC r values between pH conditions
+  Tuk_reoc = TukeyHSD(aov(lm(mean_r~PH_ID*opp_ID, data=final_data_eoc[final_data_eoc$Fun_ID==fungi[i],])))
+  Tuk_reoc = as.data.frame(Tuk_reoc[[3]])
+  Tuk_reoc = Tuk_reoc[Tuk_reoc$`p adj`<=0.05,]
+  Tuk_reoc = Tuk_reoc %>% 
+    mutate(Fun = fungi[i], pair = rownames(Tuk_reoc)) %>% 
+    select(Fun, pair, `p adj`) %>% 
+    mutate(p1.f=substr(pair,3,3), p1.pH=substr(pair,1,1), p2.f=substr(pair,7,7), p2.pH=substr(pair,5,5))
+  Tuk_reoc_fin = Tuk_reoc[Tuk_reoc$p1.f==Tuk_reoc$p2.f,]
+  if(i==1){
+    sig_reoc_fin = Tuk_reoc_fin
+  }
+  else{
+    sig_reoc_fin = rbind(sig_reoc_fin,Tuk_reoc_fin)
+  }
+  
+  # find significant differences in EOC K values between pH conditions
+  Tuk_Keoc = TukeyHSD(aov(lm(mean_K~PH_ID*opp_ID, data=final_data_eoc[final_data_eoc$Fun_ID==fungi[i],])))
+  Tuk_Keoc = as.data.frame(Tuk_Keoc[[3]])
+  Tuk_Keoc = Tuk_Keoc[Tuk_Keoc$`p adj`<=0.05,]
+  Tuk_Keoc = Tuk_Keoc %>% 
+    mutate(Fun = fungi[i], pair = rownames(Tuk_Keoc)) %>% 
+    select(Fun, pair, `p adj`) %>% 
+    mutate(p1.f=substr(pair,3,3), p1.pH=substr(pair,1,1), p2.f=substr(pair,7,7), p2.pH=substr(pair,5,5))
+  Tuk_Keoc_fin = Tuk_Keoc[Tuk_Keoc$p1.f==Tuk_Keoc$p2.f,]
+  if(i==1){
+    sig_Keoc_fin = Tuk_Keoc_fin
+  }
+  else{
+    sig_Keoc_fin = rbind(sig_Keoc_fin,Tuk_Keoc_fin)
+  }
+  
+  # find significant differences in r values between controls and fungi in competition
+  Tuk_rsvs = TukeyHSD(aov(lm(r~PH_ID*opp_ID, data=final_data_eoc[final_data_eoc$Fun_ID==fungi[i],])))
+  Tuk_rsvs = as.data.frame(Tuk_rsvs[[3]])
+  Tuk_rsvs = Tuk_rsvs[Tuk_rsvs$`p adj`<=0.05,]
+  Tuk_rsvs = Tuk_rsvs %>% 
+    mutate(Fun = fungi[i], pair = rownames(Tuk_rsvs)) %>% 
+    select(Fun, pair, `p adj`) %>% 
+    mutate(p1.f=substr(pair,3,3), p1.pH=substr(pair,1,1), p2.f=substr(pair,7,7), p2.pH=substr(pair,5,5))
+  Tuk_rsvs_fin = Tuk_rsvs[(Tuk_rsvs$p1.f==fungi[i] | Tuk_rsvs$p2.f==fungi[i]),]
+  if(i==1){
+    sig_svs_fin_r = Tuk_rsvs_fin
+  }
+  else{
+    sig_svs_fin_r = rbind(sig_svs_fin_r,Tuk_rsvs_fin)
+  }
+  
+  # find significant differences in K values between controls and fungi in competition
+  Tuk_ksvs = TukeyHSD(aov(lm(K~PH_ID*opp_ID, data=final_data_eoc[final_data_eoc$Fun_ID==fungi[i],])))
+  Tuk_ksvs = as.data.frame(Tuk_ksvs[[3]])
+  Tuk_ksvs = Tuk_ksvs[Tuk_ksvs$`p adj`<=0.05,]
+  Tuk_ksvs = Tuk_ksvs %>% 
+    mutate(Fun = fungi[i], pair = rownames(Tuk_ksvs)) %>% 
+    select(Fun, pair, `p adj`) %>% 
+    mutate(p1.f=substr(pair,3,3), p1.pH=substr(pair,1,1), p2.f=substr(pair,7,7), p2.pH=substr(pair,5,5))
+  Tuk_ksvs_fin = Tuk_ksvs[(Tuk_ksvs$p1.f==fungi[i] | Tuk_ksvs$p2.f==fungi[i]),]
+  if(i==1){
+    sig_svs_fin_K = Tuk_ksvs_fin
+  }
+  else{
+    sig_svs_fin_K = rbind(sig_svs_fin_K,Tuk_ksvs_fin)
+  }
+}
+
+#combine data
+sig_reoc_fin$key = "r"
+sig_Keoc_fin$key = "K"
+sig_eoc_fin = rbind(sig_reoc_fin,sig_Keoc_fin)
+
+sig_svs_fin_r$key = "r"
+sig_svs_fin_K$key = "K"
+sig_svs_fin = rbind(sig_svs_fin_r,sig_svs_fin_K)
+
+Tuk_final = rbind(sig_eoc_fin, sig_svs_fin)
+# write_csv(Tuk_final, "~/FungalFightClub/Tuk_final.csv")
+```
