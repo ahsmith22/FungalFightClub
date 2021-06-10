@@ -10,9 +10,11 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
 library(cowplot)
+library(visNetwork)
 
 # read in data
 final_data_eoc = read_csv("~/FungalFightClub/final_data_eoc.csv")
+final_data_eoc$PH_ID = as.character(final_data_eoc$PH_ID)
 Tuk_final = read_csv("~/FungalFightClub/Tuk_final.csv")
 
 # constants
@@ -20,27 +22,28 @@ fungi = c("A","C","H","L","P")
 pH = c(5,7)
 value = c("r","K")
 
+# labels
+labs = data.frame(main=c("(a) Amanita muscaria","(b) Cenococcum geophilum","(c) Hebeloma cylindrosporum","(d) Laccaria bicolor","(e) Paxillus involutus"), letter=c("(a)","(b)","(c)","(d)","(e)"), nams=c("A. muscaria","C. geophilum","H. cylindrosporum","L. bicolor","P. involutus"), x=c(-0.06,-0.09,-0.1,-0.05,-0.06), y=c(1,1,1,1,1))
+
+# color palette
+BlueRidgePkwy = c("#EC8FA3", "#FCBA65", "#FAECCF", "#8D7F99", "#8C9D57", "#163343")
 ```
 
 #Svs Plot
 ```{r svs}
-# labels
-labs = data.frame(main=c("(a) Amanita muscaria","(b) Cenococcum geophilum","(c) Hebeloma cylindrosporum","(d) Laccaria bicolor","(e) Paxillus involutus"), letter=c("(a)","(b)","(c)","(d)","(e)"), nams=c("A. muscaria","C. geophilum","H. cylindrosporum","L. bicolor","P. involutus"), x=c(-0.3,-0.41,-0.44,-0.27,-0.3), y=c(1,1,1,1,1))
-
 # create svs only df
 final_data_svs = final_data_eoc[final_data_eoc$cont_ID=="v",c(1:4,7,8)]
 final_data_svs = gather(final_data_svs, "key", "value", -Plate_ID, -Fun_ID, -cont_ID, -PH_ID)
-final_data_svs$PH_ID = as.character(final_data_svs$PH_ID)
 
 # take control only stats and configure stat labels
 Tuk_final = Tuk_final[Tuk_final$p1.f==Tuk_final$p2.f&Tuk_final$p2.f==Tuk_final$Fun,]
 Tuk_final$sig = ifelse(0.01<Tuk_final$`p adj`&Tuk_final$`p adj`<=0.05,"*",
                 ifelse(0.001<Tuk_final$`p adj`&Tuk_final$`p adj`<=0.01,"**","***"))
-Tuk_final$x = c(1.8,2.8,3.8,4.8,1.8,2.8,3.8)
-Tuk_final$xend = c(2.2,3.2,4.2,5.2,2.2,3.2,4.2)
-Tuk_final$y = c(0.19,0.3,0.27,0.32,6.5,12,10)
-Tuk_final$xlab = c(2,3,4,5,2,3,4)
-Tuk_final$ylab = c(0.20,0.32,0.28,0.33,6.6,13,10.5)
+Tuk_final$x = c(1.8,2.8,1.8,2.8,3.8) #3.8,4.8,
+Tuk_final$xend = c(2.2,3.2,2.2,3.2,4.2) #4.2,5.2,
+Tuk_final$y = c(0.2,0.3,7,12,10) #0.27,0.32,
+Tuk_final$xlab = c(2,3,2,3,4) #4,5,
+Tuk_final$ylab = c(0.21,0.31,7.5,12.5,10.5) #0.28,0.33,
 
 # plot growth rate of svs
 svsplot_r = ggplot(final_data_svs[final_data_svs$key=="r",], aes(Fun_ID, value)) + 
@@ -50,8 +53,8 @@ svsplot_r = ggplot(final_data_svs[final_data_svs$key=="r",], aes(Fun_ID, value))
     ylab(bquote('growth rate ('*cm^2*'/day)')) +
     scale_x_discrete(labels = labs$nams) +
     geom_vline(xintercept = c(1.5,2.5,3.5,4.5), linetype=2, size=0.25) +
-    geom_segment(data = Tuk_final[1:4,], aes(x=x,xend=xend,y=y,yend=y),color = "black") + 
-    geom_text(data = Tuk_final[1:4,], aes(xlab, ylab, label = sig)) +
+    geom_segment(data = Tuk_final[1:2,], aes(x=x,xend=xend,y=y,yend=y),color = "black") + 
+    geom_text(data = Tuk_final[1:2,], aes(xlab, ylab, label = sig)) +
     theme(legend.position = "none", axis.line.x = element_blank(), axis.ticks.x = element_blank(), axis.title.x = element_blank(), plot.margin = unit(c(1,0,1,1), "cm"), axis.text.x = element_text(face="italic", angle=330, size=10), axis.title.y = element_text(size = 11))
 # ggsave("svsplot_r.png", width = 7, height = 5)
 
@@ -63,16 +66,18 @@ svsplot_K = ggplot(final_data_svs[final_data_svs$key=="K",], aes(Fun_ID, value))
     ylab(bquote('colony size ('*cm^2*')')) +
     scale_x_discrete(labels = labs$nams) +
     geom_vline(xintercept = c(1.5,2.5,3.5,4.5), linetype=2, size=0.25) +
-    geom_segment(data = Tuk_final[5:7,], aes(x=x,xend=xend,y=y,yend=y),color = "black") + 
-    geom_text(data = Tuk_final[5:7,], aes(xlab, ylab, label = sig)) +
+    geom_segment(data = Tuk_final[3:5,], aes(x=x,xend=xend,y=y,yend=y),color = "black") + 
+    geom_text(data = Tuk_final[3:5,], aes(xlab, ylab, label = sig)) +
     theme(legend.position = "none", axis.line.x = element_blank(), axis.ticks.x = element_blank(), axis.title.x = element_blank(), plot.margin = unit(c(1,0,1,1), "cm"), axis.text.x = element_text(face="italic", angle=330, size=10), axis.title.y = element_text(size = 11))
 # ggsave("svsplot_K.png", width = 7, height = 5)
 
+svsplot_r
+svsplot_K
 ```
 
 #EOC Plot
-```{r eoc}
-# annotation df for svs sig
+```{r eoc, fig.height=11, fig.width=8, warning=FALSE}
+# annotation df for significant difference from control
 sig_svs_fin = sig_svs_fin[sig_svs_fin$p1.pH==sig_svs_fin$p2.pH,]
 annot_svs = as.data.frame(sig_svs_fin[,3])
 annot_svs$Fun_ID = sig_svs_fin$Fun
@@ -81,27 +86,27 @@ annot_svs$pair_ID = ifelse(annot_svs$Fun_ID==sig_svs_fin$p1.f,sig_svs_fin$p2.f,s
 annot_svs$key = sig_svs_fin$key
 annot_svs$sig = ifelse(0.01<annot_svs$`sig_svs_fin[, 3]`&annot_svs$`sig_svs_fin[, 3]`<=0.05,"*",
                 ifelse(0.001<annot_svs$`sig_svs_fin[, 3]`&annot_svs$`sig_svs_fin[, 3]`<=0.01,"**","***"))
-annot_svs$x = c(2.2,5.2,0.8,1.2,2.8,3.8,4.2,5.2,1.2,2.2,4.2,5.2,0.8,1.2,1.8,2.2,2.8,3.2,4.8,5.2,1.2,2.2,2.8,3.2,3.8,4.2,4.8,2.2,1.2,2.8,3.8,4.8,3.2,0.8,1.2,2.2,3.8,4.8,4.2,5.2,0.8,1.2,1.8,2.2,2.8,3.2,0.8,1.2,1.8,2.2,2.8,3.2,3.8,4.2)
-for (i in 1:nrow(sig_svs_fin_r)) {
-  annot_svs$ymax[i] = max(final_data_psf[final_data_psf$Fun_ID==annot_svs$Fun_ID[i]&final_data_psf$PH_ID==annot_svs$PH_ID[i]&final_data_psf$opp_ID==annot_svs$pair_ID[i],"mean_r"])
+annot_svs$x = c(2.2,5.2,0.8,1.2,2.8,3.8,1.2,2.2,4.2,5.2,0.8,1.2,1.8,2.2,2.8,3.2,4.8,2.2,3.2,3.8,4.2,4.8,2.2,1.2,2.8,3.8,4.8,3.2,0.8,1.2,2.2,3.8,4.8,4.2,5.2,0.8,1.2,1.8,2.2,2.8,3.2,0.8,1.2,1.8,2.2,2.8,3.2,3.8,4.2)
+for (i in 1:24) {
+  annot_svs$ymax[i] = max(final_data_eoc[final_data_eoc$Fun_ID==annot_svs$Fun_ID[i]&final_data_eoc$PH_ID==annot_svs$PH_ID[i]&final_data_eoc$opp_ID==annot_svs$pair_ID[i],"mean_r"])
 }
-for (i in (1+nrow(sig_svs_fin_r)):(nrow(sig_svs_fin_K)+nrow(sig_svs_fin_r))) {
-  annot_svs$ymax[i] = max(final_data_psf[final_data_psf$Fun_ID==annot_svs$Fun_ID[i]&final_data_psf$PH_ID==annot_svs$PH_ID[i]&final_data_psf$opp_ID==annot_svs$pair_ID[i],"mean_K"])
+for (i in 25:nrow(annot_svs)) {
+  annot_svs$ymax[i] = max(final_data_eoc[final_data_eoc$Fun_ID==annot_svs$Fun_ID[i]&final_data_eoc$PH_ID==annot_svs$PH_ID[i]&final_data_eoc$opp_ID==annot_svs$pair_ID[i],"mean_K"])
 }
 annot_svs$y = ifelse(abs(annot_svs$ymax)<0.12 | annot_svs$key=="K"&abs(annot_svs$ymax)<0.25, (abs(annot_svs$ymax*0.6)) + annot_svs$ymax, (abs(annot_svs$ymax*0.2)) + annot_svs$ymax)
 annot_svs$y = ifelse(abs(annot_svs$y)<0.03,annot_svs$y + 0.05,annot_svs$y)
 annot_svs$y = ifelse(annot_svs$key=="K"& abs(annot_svs$y)<0.1,annot_svs$y + 0.2,annot_svs$y)
 
-# annotation df for eoc sig
+# annotation df for significant difference between eoc by pH
 sig_eoc_fin$sig = ifelse(0.01<sig_eoc_fin$`p adj`&sig_eoc_fin$`p adj`<=0.05,"*",
                 ifelse(0.001<sig_eoc_fin$`p adj`&sig_eoc_fin$`p adj`<=0.01,"**","***"))
-sig_eoc_fin$x = c(2.8,3.8,0.8,1.8,3.8,4.8,1.8,1.8,3.8,2.8,1.8,3.8,2.8,1.8,2.8)
+sig_eoc_fin$x = c(2.8,3.8,0.8,1.8,3.8,4.8,1.8,3.8,2.8,1.8,3.8,2.8,0.8,1.8,2.8,3.8)
 sig_eoc_fin$xend = sig_eoc_fin$x + 0.4
 for (i in 1:nrow(sig_reoc_fin)) {
-  sig_eoc_fin$ymax[i] = max(final_data_psf[final_data_psf$Fun_ID==sig_eoc_fin$Fun[i]&final_data_psf$opp_ID==sig_eoc_fin$p1.f[i],"mean_r"])
+  sig_eoc_fin$ymax[i] = max(final_data_eoc[final_data_eoc$Fun_ID==sig_eoc_fin$Fun[i]&final_data_eoc$opp_ID==sig_eoc_fin$p1.f[i],"mean_r"])
 }
 for (i in (1+nrow(sig_reoc_fin)):(nrow(sig_Keoc_fin)+nrow(sig_reoc_fin))) {
-  sig_eoc_fin$ymax[i] = max(final_data_psf[final_data_psf$Fun_ID==sig_eoc_fin$Fun[i]&final_data_psf$opp_ID==sig_eoc_fin$p1.f[i],"mean_K"])
+  sig_eoc_fin$ymax[i] = max(final_data_eoc[final_data_eoc$Fun_ID==sig_eoc_fin$Fun[i]&final_data_eoc$opp_ID==sig_eoc_fin$p1.f[i],"mean_K"])
 }
 sig_eoc_fin$y = ifelse(sig_eoc_fin$key=="r"&sig_eoc_fin$ymax<0.4, sig_eoc_fin$ymax + 0.15, sig_eoc_fin$ymax + 0.3)
 sig_eoc_fin$y[8] = sig_eoc_fin$y[8] + 0.2
@@ -110,54 +115,266 @@ for (i in 1:nrow(sig_eoc_fin)) {
 }
 sig_eoc_fin$ylab = sig_eoc_fin$y + 0.05
 
-psfplots = vector(mode="list", length=5)
+eocplots = vector(mode="list", length=10) # vector for storing individual eoc plots
+# create plots of eoc by r
 for(i in 1:length(fungi)){
-  subdat <- final_data_psf[final_data_psf$Fun_ID==fungi[i],]
-  psfplots[[i]] = ggplot(subdat, aes(opp_ID,mean_r)) +
+  subdat <- final_data_eoc[final_data_eoc$Fun_ID==fungi[i],]
+  eocplots[[i]] = ggplot(subdat, aes(opp_ID,mean_r)) +
     theme_cowplot() +
     geom_boxplot(outlier.alpha = 0, aes(fill=PH_ID), color="black") +
     geom_point(position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.9), aes(opp_ID,mean_r,fill = PH_ID,alpha=0.7)) +
     scale_y_continuous(breaks=c(-1,-0.75,-0.5,-0.25,0,0.25,0.5,0.75,1)) +
     geom_hline(yintercept=0, size=0.35) +
     geom_vline(xintercept = c(1.5,2.5,3.5,4.5), linetype=2, size=0.25) +
-    theme(legend.position = "none", axis.line.x = element_blank(), axis.ticks.x = element_blank(), plot.margin = unit(c(1,1,0.5,0), "cm"), axis.title.x = element_blank(), axis.text.x = element_blank()) +
+    theme(legend.position = "none", axis.line.x = element_blank(), axis.ticks.x = element_blank(), plot.margin = unit(c(1,1,0.5,1), "cm"), axis.title.x = element_blank(), axis.text.x = element_blank()) +
     ylab("EOC (r)")
 }
+# create plots of eoc by K
 for(i in 1:length(fungi)){
-  subdat <- final_data_psf[final_data_psf$Fun_ID==fungi[i],]
-  psfplots[[i+5]] = ggplot(subdat, aes(opp_ID,mean_K)) +
+  subdat <- final_data_eoc[final_data_eoc$Fun_ID==fungi[i],]
+  eocplots[[i+5]] = ggplot(subdat, aes(opp_ID,mean_K)) +
     theme_cowplot() +
     geom_boxplot(outlier.alpha = 0, aes(fill=PH_ID), color="black") +
     geom_point(position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.9), aes(opp_ID,mean_K,fill = PH_ID,alpha=0.7)) +
     scale_y_continuous(breaks=c(-1,-0.75,-0.5,-0.25,0,0.25,0.5,0.75,1,1.25,1.5)) +
     geom_hline(yintercept=0, size=0.35) +
     geom_vline(xintercept = c(1.5,2.5,3.5,4.5), linetype=2, size=0.25) +
-    theme(legend.position = "none", axis.line.x = element_blank(), axis.ticks.x = element_blank(), plot.margin = unit(c(1,1,0.5,0), "cm"), axis.title.x = element_blank(), axis.text.x = element_blank()) +
+    theme(legend.position = "none", axis.line.x = element_blank(), axis.ticks.x = element_blank(), plot.margin = unit(c(1,1,0.5,1), "cm"), axis.title.x = element_blank(), axis.text.x = element_blank()) +
     ylab("EOC (K)")
 }
 
-# add annotations for svs sig
-plotnum = c(1,1,rep(2,6),3,3,3,3,rep(4,8),rep(5,6),6,6,rep(7,5),rep(8,7),rep(9,6),rep(10,8))
+# add annotations for signifcant differences from control
+plotnum = c(1,1,rep(2,4),3,3,3,3,rep(4,7),rep(5,4),6,6,rep(7,5),rep(8,7),rep(9,6),rep(10,8))
 for (i in 1:nrow(annot_svs)) {
-  psfplots[[plotnum[i]]] = psfplots[[plotnum[i]]] + geom_text(data=annot_svs[i,], aes(x,y, label=sig))
+  eocplots[[plotnum[i]]] = eocplots[[plotnum[i]]] + geom_text(data=annot_svs[i,], aes(x,y, label=sig))
 }
 
-# add annotations for eoc sig
-plotnum1 = c(2,2,3,3,3,3,5,6,6,7,8,8,9,10,10)
+# add annotations for significant differences between eoc by pH
+plotnum1 = c(2,2,3,3,3,3,5,6,7,8,8,9,10,10,10,10)
 for (i in 1:nrow(sig_eoc_fin)) {
-  psfplots[[plotnum1[i]]] = psfplots[[plotnum1[i]]] + geom_segment(data = sig_eoc_fin[i,], aes(x=x,xend=xend,y=y,yend=y),color = "black") + geom_text(data = sig_eoc_fin[i,], aes(xlab, ylab, label = sig))
+  eocplots[[plotnum1[i]]] = eocplots[[plotnum1[i]]] + geom_segment(data = sig_eoc_fin[i,], aes(x=x,xend=xend,y=y,yend=y),color = "black") + geom_text(data = sig_eoc_fin[i,], aes(xlab, ylab, label = sig))
 }
-# fix plot 6
-psfplots[[6]] = psfplots[[6]] + scale_y_continuous(breaks=c(-1,-0.50,0,0.5,1,1.5,2))
+# fix y scal eof plot 6
+eocplots[[6]] = eocplots[[6]] + scale_y_continuous(breaks=c(-1,-0.50,0,0.5,1,1.5,2))
 
-# add opp_ID to bottom plots
-psfplots[[5]] = psfplots[[5]] + scale_x_discrete(labels = labs$nams) + theme(axis.text.x = element_text(face="italic", angle=330, size=10))
-psfplots[[10]] = psfplots[[10]] + scale_x_discrete(labels = labs$nams) + theme(axis.text.x = element_text(face="italic", angle=330, size=10))
+# add opponent ID to bottom of plots
+eocplots[[5]] = eocplots[[5]] + scale_x_discrete(labels = labs$nams) + theme(axis.text.x = element_text(face="italic", angle=330, size=10))
+eocplots[[10]] = eocplots[[10]] + scale_x_discrete(labels = labs$nams) + theme(axis.text.x = element_text(face="italic", angle=330, size=10))
 
-p3=plot_grid(psfplots[[1]],psfplots[[2]],psfplots[[3]],psfplots[[4]],psfplots[[5]],nrow=5,ncol=1,rel_heights= c(1,1,1,1,1.25))
-p4=plot_grid(psfplots[[6]],psfplots[[7]],psfplots[[8]],psfplots[[9]],psfplots[[10]],nrow=5,ncol=1,rel_heights= c(1,1,1,1,1.25))
-plot_grid(p3,p4,nrow=1,ncol=2)
+# assemble eoc by r plot
+eocplot_r=plot_grid(eocplots[[1]],eocplots[[2]],eocplots[[3]],eocplots[[4]],eocplots[[5]],nrow=5,ncol=1,labels=labs$main,label_size=14,label_x=labs$x,label_y=labs$y,rel_heights= c(1,1,1,1,1.25))
+# ggsave("eocplot_r.png", height = 11, width = 8)
+
+# assemble eoc by K plot
+eocplot_K=plot_grid(eocplots[[6]],eocplots[[7]],eocplots[[8]],eocplots[[9]],eocplots[[10]],nrow=5,ncol=1,labels=labs$main,label_size=14,label_x=labs$x,label_y=labs$y,rel_heights= c(1,1,1,1,1.25))
+# ggsave("eocplot_K.png", height = 11, width = 8)
+
+eocplot_r
+eocplot_K
+```
+
+#Network Plots
+```{r net}
+# get control data ready for comparison to other controls
+final_data_svs = final_data_eoc[final_data_eoc$cont_ID=="v",]
+final_data_svs$Treat_ID = substr(final_data_svs$Plate_ID,1,3)
+final_data_svs = final_data_svs %>% 
+  dplyr::group_by(Treat_ID) %>% 
+  dplyr::summarise(mean_r = mean(r, na.rm=TRUE), mean_K = mean(K, na.rm=TRUE)) %>% 
+  dplyr::mutate(PH_ID = substr(Treat_ID,3,3), Fun_ID = substr(Treat_ID,1,1))
+final_data_svs5 = final_data_svs[final_data_svs$PH_ID==5,]
+final_data_svs7 = final_data_svs[final_data_svs$PH_ID==7,]
+
+# set up a df for storing network control values
+contpairfin = as.data.frame(matrix(nrow=25,ncol=2))
+colnames(contpairfin) = c("Fun", "opp")
+contpairfin$Fun = c(rep("A",5),rep("C",5),rep("H",5),rep("L",5),rep("P",5))
+contpairfin$opp = c(rep(c("A","C","H","L","P"),5))
+contpairfin = contpairfin[contpairfin$Fun!=contpairfin$opp,]
+contpairfin5 = contpairfin
+contpairfin7 = contpairfin
+
+# calculate the control comparison (which will be the widtch of network lines)
+for (x in 1:nrow(contpairfin5)) {
+  contpairfin5$width_r[x] = (final_data_svs5[final_data_svs5$Fun_ID==contpairfin5$Fun[x],"mean_r"])/(final_data_svs5[final_data_svs5$Fun_ID==contpairfin5$opp[x],"mean_r"])
+  contpairfin5$width_K[x] = (final_data_svs5[final_data_svs5$Fun_ID==contpairfin5$Fun[x],"mean_K"])/(final_data_svs5[final_data_svs5$Fun_ID==contpairfin5$opp[x],"mean_K"])
+}
+for (x in 1:nrow(contpairfin7)) {
+  contpairfin7$width_r[x] = (final_data_svs7[final_data_svs7$Fun_ID==contpairfin7$Fun[x],"mean_r"])/(final_data_svs7[final_data_svs7$Fun_ID==contpairfin7$opp[x],"mean_r"])
+  contpairfin7$width_K[x] = (final_data_svs7[final_data_svs7$Fun_ID==contpairfin7$Fun[x],"mean_K"])/(final_data_svs7[final_data_svs7$Fun_ID==contpairfin7$opp[x],"mean_K"])
+}
+
+# network of controls pH 5 for r
+nodes = data.frame(id = 1:5, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
+edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5), 
+                   to = c(2,3,4,5,1,3,4,5,1,2,4,5,1,2,3,5,1,2,3,4), 
+                   width = unlist(contpairfin5$width_r),
+                   smooth = c(FALSE,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,FALSE,TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,FALSE,TRUE,TRUE,TRUE,TRUE), 
+                   length = c(rep(300, 20)),
+                   arrows = c(rep("to", 20)))
+edges$width = edges$width*3
+
+cont5r = visNetwork(nodes, edges, width = "100%", height = 350, main = "pH 5.6") %>%
+  visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
+  visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
+  visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
+  visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
+  visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
+  visLayout(randomSeed = 22)
+cont5r
+
+# network of controls pH 7 for r
+nodes = data.frame(id = 1:5, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
+edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5), 
+                   to = c(2,3,4,5,1,3,4,5,1,2,4,5,1,2,3,5,1,2,3,4), 
+                   width = unlist(contpairfin7$width_r),
+                   smooth = c(FALSE,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,FALSE,TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,FALSE,TRUE,TRUE,TRUE,TRUE), 
+                   length = c(rep(300, 20)),
+                   arrows = c(rep("to", 20)))
+edges$width = edges$width*3
+
+cont7r = visNetwork(nodes, edges, width = "100%", height = 350, main = "pH 7") %>%
+  visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
+  visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
+  visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
+  visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
+  visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
+  visLayout(randomSeed = 22)
+cont7r
+
+# network of controls pH 5 for K
+nodes = data.frame(id = 1:5, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
+edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5), 
+                   to = c(2,3,4,5,1,3,4,5,1,2,4,5,1,2,3,5,1,2,3,4), 
+                   width = unlist(contpairfin5$width_K),
+                   smooth = c(FALSE,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,FALSE,TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,FALSE,TRUE,TRUE,TRUE,TRUE), 
+                   length = c(rep(300, 20)),
+                   arrows = c(rep("to", 20)))
+edges$width = edges$width*3
+
+cont5K = visNetwork(nodes, edges, width = "100%", height = 350, main = "pH 5.6") %>%
+  visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
+  visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
+  visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
+  visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
+  visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
+  visLayout(randomSeed = 22)
+cont5K
+
+# network of controls pH 7 for K
+nodes = data.frame(id = 1:5, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
+edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5), 
+                   to = c(2,3,4,5,1,3,4,5,1,2,4,5,1,2,3,5,1,2,3,4), 
+                   width = unlist(contpairfin7$width_K),
+                   smooth = c(FALSE,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,FALSE,TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,FALSE,TRUE,TRUE,TRUE,TRUE), 
+                   length = c(rep(300, 20)),
+                   arrows = c(rep("to", 20)))
+edges$width = edges$width*3
+
+cont7K = visNetwork(nodes, edges, width = "100%", height = 350, main = "pH 7") %>%
+  visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
+  visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
+  visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
+  visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
+  visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
+  visLayout(randomSeed = 22)
+cont7K
+
+# eoc wins
+eocnetwin = final_data_psf[final_data_psf$cont_ID==0,] %>% 
+  dplyr::group_by(Plate_ID) %>% 
+  dplyr::mutate(eocrwin = Plug_ID.x[which.max(mean_r)],
+                eocKwin = Plug_ID.x[which.max(mean_K)])
+
+eocnetwinr = as.data.frame(base::table(eocnetwin[eocnetwin$cont_ID==0,"eocrwin"]))
+eocnetwinK = as.data.frame(base::table(eocnetwin[eocnetwin$cont_ID==0,"eocKwin"]))
+eocnetwinr$Freq = eocnetwinr$Freq/2
+eocnetwinK$Freq = eocnetwinK$Freq/2
+eocnetwinr$PH = substr(eocnetwinr$Var1,4,4)
+eocnetwinK$PH = substr(eocnetwinK$Var1,4,4)
 
 
+# eoc 5 r
+eoc5rfin = eocnetwinr[eocnetwinr$PH==5,]
 
+nodes = data.frame(id = 1:5, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
+edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5), 
+                   to = c(2,3,4,5,1,3,4,5,1,2,4,5,1,2,3,5,1,2,3,4), 
+                   width= c(0,4,6,10,10,8,5,8,6,0,10,6,4,0,0,2,0,1,4,8),
+                   smooth = c(FALSE,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,FALSE,TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,FALSE,TRUE,TRUE,TRUE,TRUE), 
+                   length = c(rep(300, 20)),
+                   arrows = c(rep("to", 20)))
+edges$width = edges$width/1.5
+
+eoc5r = visNetwork(nodes, edges, width = "100%", height = 350, main = "pH 5.6") %>%
+  visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
+  visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
+  visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
+  visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
+  visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
+  visLayout(randomSeed = 22)
+eoc5r
+
+# eoc 7 r
+eoc7rfin = eocnetwinr[eocnetwinr$PH==7,]
+
+nodes = data.frame(id = 1:5, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
+edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5), 
+                   to = c(2,3,4,5,1,3,4,5,1,2,4,5,1,2,3,5,1,2,3,4), 
+                   width= c(5,6,9,10,4,9,9,10,0,0,1,1,0,0,7,8,0,0,9,2),
+                   smooth = c(FALSE,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,FALSE,TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,FALSE,TRUE,TRUE,TRUE,TRUE), 
+                   length = c(rep(300, 20)),
+                   arrows = c(rep("to", 20)))
+edges$width = edges$width/1.5
+
+eoc7r = visNetwork(nodes, edges, width = "100%", height = 350, main = "pH 7") %>%
+  visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
+  visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
+  visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
+  visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
+  visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
+  visLayout(randomSeed = 22)
+eoc7r
+
+# eoc 5 K
+eoc5Kfin = eocnetwinK[eocnetwinK$PH==5,]
+
+nodes = data.frame(id = 1:5, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
+edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5), 
+                   to = c(2,3,4,5,1,3,4,5,1,2,4,5,1,2,3,5,1,2,3,4), 
+                   width= c(7,1,4,9,3,7,4,0,9,1,10,3,6,1,0,2,1,9,7,8),
+                   smooth = c(FALSE,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,FALSE,TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,FALSE,TRUE,TRUE,TRUE,TRUE), 
+                   length = c(rep(300, 20)),
+                   arrows = c(rep("to", 20)))
+edges$width = edges$width/1.5
+
+eoc5K = visNetwork(nodes, edges, width = "100%", height = 350, main = "pH 5.6") %>%
+  visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
+  visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
+  visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
+  visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
+  visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
+  visLayout(randomSeed = 22)
+eoc5K
+
+# eoc 7 K
+eoc7Kfin = eocnetwinK[eocnetwinK$PH==7,]
+
+nodes = data.frame(id = 1:5, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
+edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5), 
+                   to = c(2,3,4,5,1,3,4,5,1,2,4,5,1,2,3,5,1,2,3,4), 
+                   width= c(9,0,1,10,0,0,0,0,6,9,8,10,8,9,0,0,0,10,0,10),
+                   smooth = c(FALSE,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,FALSE,TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,FALSE,TRUE,TRUE,TRUE,TRUE), 
+                   length = c(rep(300, 20)),
+                   arrows = c(rep("to", 20)))
+edges$width = edges$width/1.5
+
+eoc7K = visNetwork(nodes, edges, width = "100%", height = 350, main = "pH 7") %>%
+  visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
+  visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
+  visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
+  visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
+  visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
+  visLayout(randomSeed = 22)
+eoc7K
 ```

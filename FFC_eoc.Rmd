@@ -78,7 +78,7 @@ for (u in 1:length(value)) { # iterate for r and K
   final_data_eoc[[colnam]] = rowMeans(final_data_eoc[,c(9:18)], na.rm=TRUE) # compute ave eoc for each svs
 }
 
-#write_csv(final_data_eoc, "~/FungalFightClub/final_data_eoc.csv")
+# write_csv(final_data_eoc, "~/FungalFightClub/final_data_eoc.csv")
 ```
 
 ```{r rwin}
