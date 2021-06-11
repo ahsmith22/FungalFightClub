@@ -11,11 +11,16 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(cowplot)
 library(visNetwork)
+library(ape)
+library(ggpubr)
 
 # read in data
 final_data_eoc = read_csv("~/FungalFightClub/final_data_eoc.csv")
-final_data_eoc$PH_ID = as.character(final_data_eoc$PH_ID)
+final_data_eoc$PH_ID = as.character(final_data_eoc$PH_ID) # to fix code
+final_data_eoc$Plug_ID = substr(final_data_eoc$Plug_ID,1,4) # to fix code
 Tuk_final = read_csv("~/FungalFightClub/Tuk_final.csv")
+net_rt = read_csv("~/FungalFightClub/FFC Treatments - Reaction Types.csv")
+FFC_nex = read.nexus("~/FungalFightClub/infile.nex.con.tre")
 
 # constants
 fungi = c("A","C","H","L","P")
@@ -281,10 +286,10 @@ cont7K = visNetwork(nodes, edges, width = "100%", height = 350, main = "pH 7") %
 cont7K
 
 # eoc wins
-eocnetwin = final_data_psf[final_data_psf$cont_ID==0,] %>% 
+eocnetwin = final_data_eoc[final_data_eoc$cont_ID==0,] %>% 
   dplyr::group_by(Plate_ID) %>% 
-  dplyr::mutate(eocrwin = Plug_ID.x[which.max(mean_r)],
-                eocKwin = Plug_ID.x[which.max(mean_K)])
+  dplyr::mutate(eocrwin = Plug_ID[which.max(mean_r)],
+                eocKwin = Plug_ID[which.max(mean_K)])
 
 eocnetwinr = as.data.frame(base::table(eocnetwin[eocnetwin$cont_ID==0,"eocrwin"]))
 eocnetwinK = as.data.frame(base::table(eocnetwin[eocnetwin$cont_ID==0,"eocKwin"]))
@@ -377,4 +382,128 @@ eoc7K = visNetwork(nodes, edges, width = "100%", height = 350, main = "pH 7") %>
   visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
   visLayout(randomSeed = 22)
 eoc7K
+
+# Index of Antagonism (Reaction types)
+net_rt = net_rt[,1:3]
+net_rt$Fun_ID = paste(net_rt$Plug_ID, substr(net_rt$Plate_ID,1,2), sep="")
+net_rt$PH_ID = substr(net_rt$Plate_ID,3,3)
+
+# reaction type pH 5
+rt_netval_5 = net_rt[net_rt$PH_ID==5,] %>% 
+  dplyr::group_by(Fun_ID) %>% 
+  dplyr::summarise(IOA = sum(RT))
+rt_netval_5$width = rt_netval_5$IOA/10
+
+nodes = data.frame(id = 1:5, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
+edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5), 
+                   to = c(2,3,4,5,1,3,4,5,1,2,4,5,1,2,3,5,1,2,3,4), 
+                   width= c(1.2,1,0.8,2.6,0,0,0,0,1,3.6,2,1.9,1,1.9,2,1,0.2,2.7,1,0.8),
+                   smooth = c(FALSE,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,FALSE,TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,FALSE,TRUE,TRUE,TRUE,TRUE), 
+                   length = c(rep(300, 20)),
+                   arrows = c(rep("to", 20)))
+edges$width = edges$width*2
+
+rt5 = visNetwork(nodes, edges, width = "100%", height = 350, main = "pH 5.6") %>%
+  visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
+  visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
+  visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
+  visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
+  visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
+  visLayout(randomSeed = 22)
+rt5
+
+# reaction type pH 7
+rt_netval_7 = net_rt[net_rt$PH_ID==7,] %>% 
+  dplyr::group_by(Fun_ID) %>% 
+  dplyr::summarise(IOA = sum(RT))
+rt_netval_7$width = rt_netval_7$IOA/10
+
+nodes = data.frame(id = 1:5, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
+edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5), 
+                   to = c(2,3,4,5,1,3,4,5,1,2,4,5,1,2,3,5,1,2,3,4), 
+                   width= c(1.2,1,0.1,2.2,0,0,0,1,1,3,1,1,1.9,1.8,1,1,0.4,3,1,1),
+                   smooth = c(FALSE,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,FALSE,TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,FALSE,TRUE,TRUE,TRUE,TRUE), 
+                   length = c(rep(300, 20)),
+                   arrows = c(rep("to", 20)))
+edges$width = edges$width*2
+
+rt7 = visNetwork(nodes, edges, width = "100%", height = 350, main = "pH 7") %>%
+  visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
+  visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
+  visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
+  visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
+  visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
+  visLayout(randomSeed = 22)
+rt7
+```
+
+#Phylogeny Plots
+```{r phylo}
+# Phylogeny used for distance calculations
+plot.phylo(FFC_nex)
+dist = data.frame(pair_ID = c("CA","CH","CL","CP","HA","HP","LA","LH","LP","PA"), 
+                  dist = c(1.008005,0.8745145,0.9270461,0.7354254,0.6383418,0.6250077,0.6908735,0.433387,0.6775393,0.7584986)) # phylogenetic distances for each pairing
+
+# Prepare data
+final_data_phylo = final_data_eoc[final_data_eoc$cont_ID==0,]
+final_data_phylo = final_data_phylo[,c(5,7,8,19,20)]
+
+# Take mean of EOC r values across replicates
+summ_eoc_r = summarySE(final_data_phylo, "mean_r", "Plug_ID")
+summ_eoc_r$pair_ID = substr(summ_eoc_r$Plug_ID,2,3)
+summ_eoc_r$ph_ID = substr(summ_eoc_r$Plug_ID,4,4)
+summ_eoc_r$Fun_ID = substr(summ_eoc_r$Plug_ID,1,1)
+
+# Take mean of EOC K values across replicates
+summ_eoc_K = summarySE(final_data_phylo, "mean_K", "Plug_ID")
+summ_eoc_K$pair_ID = substr(summ_eoc_K$Plug_ID,2,3)
+summ_eoc_K$ph_ID = substr(summ_eoc_K$Plug_ID,4,4)
+summ_eoc_K$Fun_ID = substr(summ_eoc_K$Plug_ID,1,1)
+
+# Add control r/K mean values for comparison plot
+summ_r = summarySE(final_data_eoc[final_data_eoc$cont_ID=="v",], "r", "Plug_ID", na.rm = TRUE)
+summ_eoc_r$r = summ_r$r
+summ_K = summarySE(final_data_eoc[final_data_eoc$cont_ID=="v",], "K", "Plug_ID", na.rm = TRUE)
+summ_eoc_K$K = summ_K$K
+
+# Combine
+summ_eoc_r = right_join(summ_eoc_r, dist)
+summ_eoc_K = right_join(summ_eoc_K, dist)
+
+# Plots for r
+ggplot(summ_eoc_r, aes(dist, mean_r)) + 
+  geom_point(aes(color=ph_ID)) + 
+  geom_smooth(method = "lm") +
+  xlab("phylogenetic distance") +
+  ylab("EOC r") + 
+  stat_regline_equation(aes(label =  paste(..eq.label.., ..adj.rr.label.., sep = "~~~~")))
+
+ggplot(summ_eoc_r, aes(r, mean_r)) + 
+  geom_point(aes(color=ph_ID)) + 
+  geom_smooth(method = "lm") +
+  xlab("growth rate") +
+  ylab("EOC r") + 
+  stat_regline_equation(aes(label =  paste(..eq.label.., ..adj.rr.label.., sep = "~~~~")))
+
+# Plots for K
+ggplot(summ_eoc_K, aes(dist, mean_K)) + 
+  geom_point(aes(color=ph_ID)) + 
+  geom_smooth(method = "lm") +
+  xlab("phylogenetic distance") +
+  ylab("EOC K") + 
+  stat_regline_equation(aes(label =  paste(..eq.label.., ..adj.rr.label.., sep = "~~~~")))
+
+ggplot(summ_eoc_K, aes(K, mean_K)) + 
+  geom_point(aes(color=ph_ID)) + 
+  geom_smooth(method = "lm") +
+  xlab("colony size") +
+  ylab("EOC K") + 
+  stat_regline_equation(aes(label =  paste(..eq.label.., ..adj.rr.label.., sep = "~~~~")))
+
+# Stats for these linear models
+eoc_dist_r = lm(mean_r~dist*ph_ID, summ_eoc_r)
+eoc_cont_r = lm(mean_r~r*ph_ID, summ_eoc_r)
+eoc_dist_K = lm(mean_K~dist*ph_ID, summ_eoc_K)
+eoc_cont_K = lm(mean_K~K*ph_ID, summ_eoc_K)
+
 ```
