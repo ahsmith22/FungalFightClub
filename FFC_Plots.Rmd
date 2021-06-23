@@ -8,17 +8,21 @@ output: html_document
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 
+library(Rmisc)
 library(tidyverse)
 library(cowplot)
 library(visNetwork)
 library(ape)
 library(ggpubr)
+library(lme4)
 
 # read in data
 final_data_eoc = read_csv("~/FungalFightClub/final_data_eoc.csv")
 final_data_eoc$PH_ID = as.character(final_data_eoc$PH_ID) # to fix code
 final_data_eoc$Plug_ID = substr(final_data_eoc$Plug_ID,1,4) # to fix code
 Tuk_final = read_csv("~/FungalFightClub/Tuk_final.csv")
+sig_svs_fin = read_csv("~/FungalFightClub/sig_svs_fin.csv")
+sig_eoc_fin = read_csv("~/FungalFightClub/sig_eoc_fin.csv")
 net_rt = read_csv("~/FungalFightClub/FFC Treatments - Reaction Types.csv")
 FFC_nex = read.nexus("~/FungalFightClub/infile.nex.con.tre")
 
@@ -89,13 +93,13 @@ annot_svs$Fun_ID = sig_svs_fin$Fun
 annot_svs$PH_ID = sig_svs_fin$p1.pH
 annot_svs$pair_ID = ifelse(annot_svs$Fun_ID==sig_svs_fin$p1.f,sig_svs_fin$p2.f,sig_svs_fin$p1.f)
 annot_svs$key = sig_svs_fin$key
-annot_svs$sig = ifelse(0.01<annot_svs$`sig_svs_fin[, 3]`&annot_svs$`sig_svs_fin[, 3]`<=0.05,"*",
-                ifelse(0.001<annot_svs$`sig_svs_fin[, 3]`&annot_svs$`sig_svs_fin[, 3]`<=0.01,"**","***"))
+annot_svs$sig = ifelse(0.01<annot_svs$`p adj`&annot_svs$`p adj`<=0.05,"*",
+                ifelse(0.001<annot_svs$`p adj`&annot_svs$`p adj`<=0.01,"**","***"))
 annot_svs$x = c(2.2,5.2,0.8,1.2,2.8,3.8,1.2,2.2,4.2,5.2,0.8,1.2,1.8,2.2,2.8,3.2,4.8,2.2,3.2,3.8,4.2,4.8,2.2,1.2,2.8,3.8,4.8,3.2,0.8,1.2,2.2,3.8,4.8,4.2,5.2,0.8,1.2,1.8,2.2,2.8,3.2,0.8,1.2,1.8,2.2,2.8,3.2,3.8,4.2)
-for (i in 1:24) {
+for (i in 1:nrow(annot_svs[annot_svs$key=="r",])) {
   annot_svs$ymax[i] = max(final_data_eoc[final_data_eoc$Fun_ID==annot_svs$Fun_ID[i]&final_data_eoc$PH_ID==annot_svs$PH_ID[i]&final_data_eoc$opp_ID==annot_svs$pair_ID[i],"mean_r"])
 }
-for (i in 25:nrow(annot_svs)) {
+for (i in nrow(annot_svs[annot_svs$key=="r",]):nrow(annot_svs)) {
   annot_svs$ymax[i] = max(final_data_eoc[final_data_eoc$Fun_ID==annot_svs$Fun_ID[i]&final_data_eoc$PH_ID==annot_svs$PH_ID[i]&final_data_eoc$opp_ID==annot_svs$pair_ID[i],"mean_K"])
 }
 annot_svs$y = ifelse(abs(annot_svs$ymax)<0.12 | annot_svs$key=="K"&abs(annot_svs$ymax)<0.25, (abs(annot_svs$ymax*0.6)) + annot_svs$ymax, (abs(annot_svs$ymax*0.2)) + annot_svs$ymax)
@@ -107,10 +111,10 @@ sig_eoc_fin$sig = ifelse(0.01<sig_eoc_fin$`p adj`&sig_eoc_fin$`p adj`<=0.05,"*",
                 ifelse(0.001<sig_eoc_fin$`p adj`&sig_eoc_fin$`p adj`<=0.01,"**","***"))
 sig_eoc_fin$x = c(2.8,3.8,0.8,1.8,3.8,4.8,1.8,3.8,2.8,1.8,3.8,2.8,0.8,1.8,2.8,3.8)
 sig_eoc_fin$xend = sig_eoc_fin$x + 0.4
-for (i in 1:nrow(sig_reoc_fin)) {
+for (i in 1:nrow(sig_eoc_fin[sig_eoc_fin$key=="r",])) {
   sig_eoc_fin$ymax[i] = max(final_data_eoc[final_data_eoc$Fun_ID==sig_eoc_fin$Fun[i]&final_data_eoc$opp_ID==sig_eoc_fin$p1.f[i],"mean_r"])
 }
-for (i in (1+nrow(sig_reoc_fin)):(nrow(sig_Keoc_fin)+nrow(sig_reoc_fin))) {
+for (i in (1+nrow(sig_eoc_fin[sig_eoc_fin$key=="r",])):(nrow(sig_eoc_fin[sig_eoc_fin$key=="K",])+nrow(sig_eoc_fin[sig_eoc_fin$key=="r",]))) {
   sig_eoc_fin$ymax[i] = max(final_data_eoc[final_data_eoc$Fun_ID==sig_eoc_fin$Fun[i]&final_data_eoc$opp_ID==sig_eoc_fin$p1.f[i],"mean_K"])
 }
 sig_eoc_fin$y = ifelse(sig_eoc_fin$key=="r"&sig_eoc_fin$ymax<0.4, sig_eoc_fin$ymax + 0.15, sig_eoc_fin$ymax + 0.3)
@@ -179,7 +183,7 @@ eocplot_K
 ```
 
 #Network Plots
-```{r net}
+```{r net, fig.height=7, fig.width=7}
 # get control data ready for comparison to other controls
 final_data_svs = final_data_eoc[final_data_eoc$cont_ID=="v",]
 final_data_svs$Treat_ID = substr(final_data_svs$Plate_ID,1,3)
@@ -219,14 +223,14 @@ edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5),
                    arrows = c(rep("to", 20)))
 edges$width = edges$width*3
 
-cont5r = visNetwork(nodes, edges, width = "100%", height = 350, main = "pH 5.6") %>%
+cont5r = visNetwork(nodes, edges, width = "100%", height = 500) %>%
   visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
   visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
   visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
   visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
   visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
   visLayout(randomSeed = 22)
-cont5r
+# cont5r
 
 # network of controls pH 7 for r
 nodes = data.frame(id = 1:5, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
@@ -238,14 +242,14 @@ edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5),
                    arrows = c(rep("to", 20)))
 edges$width = edges$width*3
 
-cont7r = visNetwork(nodes, edges, width = "100%", height = 350, main = "pH 7") %>%
+cont7r = visNetwork(nodes, edges, width = "100%", height = 500) %>%
   visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
   visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
   visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
   visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
   visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
   visLayout(randomSeed = 22)
-cont7r
+# cont7r
 
 # network of controls pH 5 for K
 nodes = data.frame(id = 1:5, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
@@ -257,14 +261,14 @@ edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5),
                    arrows = c(rep("to", 20)))
 edges$width = edges$width*3
 
-cont5K = visNetwork(nodes, edges, width = "100%", height = 350, main = "pH 5.6") %>%
+cont5K = visNetwork(nodes, edges, width = "100%", height = 500) %>%
   visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
   visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
   visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
   visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
   visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
   visLayout(randomSeed = 22)
-cont5K
+# cont5K
 
 # network of controls pH 7 for K
 nodes = data.frame(id = 1:5, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
@@ -276,14 +280,14 @@ edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5),
                    arrows = c(rep("to", 20)))
 edges$width = edges$width*3
 
-cont7K = visNetwork(nodes, edges, width = "100%", height = 350, main = "pH 7") %>%
+cont7K = visNetwork(nodes, edges, width = "100%", height = 500) %>%
   visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
   visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
   visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
   visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
   visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
   visLayout(randomSeed = 22)
-cont7K
+# cont7K
 
 # eoc wins
 eocnetwin = final_data_eoc[final_data_eoc$cont_ID==0,] %>% 
@@ -311,14 +315,14 @@ edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5),
                    arrows = c(rep("to", 20)))
 edges$width = edges$width/1.5
 
-eoc5r = visNetwork(nodes, edges, width = "100%", height = 350, main = "pH 5.6") %>%
+eoc5r = visNetwork(nodes, edges, width = "100%", height = 500) %>%
   visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
   visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
   visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
   visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
   visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
   visLayout(randomSeed = 22)
-eoc5r
+# eoc5r
 
 # eoc 7 r
 eoc7rfin = eocnetwinr[eocnetwinr$PH==7,]
@@ -332,14 +336,14 @@ edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5),
                    arrows = c(rep("to", 20)))
 edges$width = edges$width/1.5
 
-eoc7r = visNetwork(nodes, edges, width = "100%", height = 350, main = "pH 7") %>%
+eoc7r = visNetwork(nodes, edges, width = "100%", height = 500) %>%
   visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
   visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
   visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
   visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
   visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
   visLayout(randomSeed = 22)
-eoc7r
+# eoc7r
 
 # eoc 5 K
 eoc5Kfin = eocnetwinK[eocnetwinK$PH==5,]
@@ -353,14 +357,14 @@ edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5),
                    arrows = c(rep("to", 20)))
 edges$width = edges$width/1.5
 
-eoc5K = visNetwork(nodes, edges, width = "100%", height = 350, main = "pH 5.6") %>%
+eoc5K = visNetwork(nodes, edges, width = "100%", height = 500) %>%
   visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
   visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
   visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
   visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
   visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
   visLayout(randomSeed = 22)
-eoc5K
+# eoc5K
 
 # eoc 7 K
 eoc7Kfin = eocnetwinK[eocnetwinK$PH==7,]
@@ -374,14 +378,14 @@ edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5),
                    arrows = c(rep("to", 20)))
 edges$width = edges$width/1.5
 
-eoc7K = visNetwork(nodes, edges, width = "100%", height = 350, main = "pH 7") %>%
+eoc7K = visNetwork(nodes, edges, width = "100%", height = 500) %>%
   visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
   visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
   visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
   visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
   visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
   visLayout(randomSeed = 22)
-eoc7K
+# eoc7K
 
 # Index of Antagonism (Reaction types)
 net_rt = net_rt[,1:3]
@@ -403,14 +407,14 @@ edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5),
                    arrows = c(rep("to", 20)))
 edges$width = edges$width*2
 
-rt5 = visNetwork(nodes, edges, width = "100%", height = 350, main = "pH 5.6") %>%
+rt5 = visNetwork(nodes, edges, width = "100%", height = 500) %>%
   visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
   visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
   visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
   visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
   visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
   visLayout(randomSeed = 22)
-rt5
+# rt5
 
 # reaction type pH 7
 rt_netval_7 = net_rt[net_rt$PH_ID==7,] %>% 
@@ -427,14 +431,26 @@ edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5),
                    arrows = c(rep("to", 20)))
 edges$width = edges$width*2
 
-rt7 = visNetwork(nodes, edges, width = "100%", height = 350, main = "pH 7") %>%
+rt7 = visNetwork(nodes, edges, width = "100%", height = 500) %>%
   visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
   visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
   visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
   visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
   visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
   visLayout(randomSeed = 22)
-rt7
+# rt7
+
+# export network plots as png files
+visExport(cont5r, type = "png")
+visExport(cont7r, type = "png")
+visExport(cont5K, type = "png")
+visExport(cont7K, type = "png")
+visExport(eoc5r, type = "png")
+visExport(eoc7r, type = "png")
+visExport(eoc5K, type = "png")
+visExport(eoc7K, type = "png")
+visExport(rt5, type = "png")
+visExport(rt7, type = "png")
 ```
 
 #Phylogeny Plots
@@ -471,34 +487,38 @@ summ_eoc_r = right_join(summ_eoc_r, dist)
 summ_eoc_K = right_join(summ_eoc_K, dist)
 
 # Plots for r
-ggplot(summ_eoc_r, aes(dist, mean_r)) + 
+eoc_dist_rplot = ggplot(summ_eoc_r, aes(dist, mean_r)) + 
   geom_point(aes(color=ph_ID)) + 
   geom_smooth(method = "lm") +
   xlab("phylogenetic distance") +
   ylab("EOC r") + 
   stat_regline_equation(aes(label =  paste(..eq.label.., ..adj.rr.label.., sep = "~~~~")))
+# ggsave("eoc_dist_rplot.png", width = 7, height = 5)
 
-ggplot(summ_eoc_r, aes(r, mean_r)) + 
+eoc_cont_rplot = ggplot(summ_eoc_r, aes(r, mean_r)) + 
   geom_point(aes(color=ph_ID)) + 
   geom_smooth(method = "lm") +
   xlab("growth rate") +
   ylab("EOC r") + 
   stat_regline_equation(aes(label =  paste(..eq.label.., ..adj.rr.label.., sep = "~~~~")))
+# ggsave("eoc_cont_rplot.png", width = 7, height = 5)
 
 # Plots for K
-ggplot(summ_eoc_K, aes(dist, mean_K)) + 
+eoc_dist_Kplot = ggplot(summ_eoc_K, aes(dist, mean_K)) + 
   geom_point(aes(color=ph_ID)) + 
   geom_smooth(method = "lm") +
   xlab("phylogenetic distance") +
   ylab("EOC K") + 
   stat_regline_equation(aes(label =  paste(..eq.label.., ..adj.rr.label.., sep = "~~~~")))
+# ggsave("eoc_dist_Kplot.png", width = 7, height = 5)
 
-ggplot(summ_eoc_K, aes(K, mean_K)) + 
+eoc_cont_Kplot = ggplot(summ_eoc_K, aes(K, mean_K)) + 
   geom_point(aes(color=ph_ID)) + 
   geom_smooth(method = "lm") +
   xlab("colony size") +
   ylab("EOC K") + 
   stat_regline_equation(aes(label =  paste(..eq.label.., ..adj.rr.label.., sep = "~~~~")))
+# ggsave("eoc_cont_Kplot.png", width = 7, height = 5)
 
 # Stats for these linear models
 eoc_dist_r = lm(mean_r~dist*ph_ID, summ_eoc_r)
@@ -506,4 +526,46 @@ eoc_cont_r = lm(mean_r~r*ph_ID, summ_eoc_r)
 eoc_dist_K = lm(mean_K~dist*ph_ID, summ_eoc_K)
 eoc_cont_K = lm(mean_K~K*ph_ID, summ_eoc_K)
 
+# linear mixed effects model
+final_data_phylo$PH_ID = substr(final_data_phylo$Plug_ID,4,4)
+final_data_phylo$Treat_ID = substr(final_data_phylo$Plug_ID,2,4)
+final_data_phylo$pair_ID = substr(final_data_phylo$Plug_ID,2,3)
+final_data_phylo = right_join(final_data_phylo, dist)
+
+mod1 = lmer(mean_r ~ dist * PH_ID + (1|Treat_ID), data = final_data_phylo)
+mod2 = lmer(mean_r ~ dist + PH_ID + (1|Treat_ID), data = final_data_phylo)
+mod3 = lmer(mean_r ~ r + PH_ID + (1|Treat_ID), data = final_data_phylo)
+mod4 = lmer(mean_K ~ r + PH_ID + (1|Treat_ID), data = final_data_phylo)
+mod5 = lmer(mean_K ~ dist + PH_ID + (1|Treat_ID), data = final_data_phylo)
+mod6 = lmer(mean_K ~ K + PH_ID + (1|Treat_ID), data = final_data_phylo)
+mod7 = lmer(mean_r ~ K + PH_ID + (1|Treat_ID), data = final_data_phylo)
+
+summary(mod2)
+summary(mod3)
+summary(mod4)
+summary(mod5)
+
+anova(mod6, mod3)
+
+library(stargazer)
+stargazer(mod3, type="text")
+stargazer(mod6, type="text")
+
+ggplot(final_data_phylo, aes(x=K, y=mean_K)) +
+  # facet_wrap(~Treat_ID) +
+  geom_point(aes(color=pair_ID,shape=PH_ID)) +
+  geom_smooth(method = "lm") +
+  stat_regline_equation(aes(label =  paste(..eq.label.., ..adj.rr.label.., sep = "~~~~")))
+  # geom_line(data = cbind(final_data_phylo, pred = predict(mod3)), aes(y=pred, color=pair_ID), size = 1)
+
+ggplot(final_data_phylo, aes(x=dist, y=mean_r)) +
+  # facet_wrap(~Treat_ID) +
+  geom_point(aes(color=pair_ID,shape=PH_ID)) +
+  geom_smooth(method = "lm") +
+  stat_regline_equation(aes(label =  paste(..eq.label.., ..adj.rr.label.., sep = "~~~~")))
+  # geom_line(data = cbind(final_data_phylo, pred = predict(mod3)), aes(y=pred, color=pair_ID), size = 1)
+
+plot(mod2)
+qqnorm(resid(mod2))
+qqline(resid(mod2))
 ```

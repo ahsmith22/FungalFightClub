@@ -105,4 +105,6 @@ sig_svs_fin = rbind(sig_svs_fin_r,sig_svs_fin_K)
 
 Tuk_final = rbind(sig_eoc_fin, sig_svs_fin)
 # write_csv(Tuk_final, "~/FungalFightClub/Tuk_final.csv")
+# write_csv(sig_svs_fin, "~/FungalFightClub/sig_svs_fin.csv")
+# write_csv(sig_eoc_fin, "~/FungalFightClub/sig_eoc_fin.csv")
 ```
