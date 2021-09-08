@@ -78,6 +78,8 @@ for (u in 1:length(value)) { # iterate for r and K
   final_data_eoc[[colnam]] = rowMeans(final_data_eoc[,c(9:18)], na.rm=TRUE) # compute ave eoc for each svs
 }
 
+final_data_eoc$mean_r[final_data_eoc$cont_ID=="v" & !is.finite(final_data_eoc$mean_r)] = NA # no NaN values
+final_data_eoc$mean_K[final_data_eoc$cont_ID=="v" & !is.finite(final_data_eoc$mean_K)] = NA # no NaN values
 # write_csv(final_data_eoc, "~/FungalFightClub/final_data_eoc.csv")
 ```
 
