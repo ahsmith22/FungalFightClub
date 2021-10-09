@@ -15,6 +15,11 @@ library(visNetwork)
 library(ape)
 library(ggpubr)
 library(lme4)
+library(lmerTest)
+library(MuMIn)
+library(emmeans)
+library(stargazer)
+library(ggeffects)
 
 # read in data
 final_data_eoc = read_csv("~/FungalFightClub/final_data_eoc.csv")
@@ -462,110 +467,217 @@ dist = data.frame(pair_ID = c("CA","CH","CL","CP","HA","HP","LA","LH","LP","PA")
 
 # Prepare data
 final_data_phylo = final_data_eoc[final_data_eoc$cont_ID==0,]
-final_data_phylo = final_data_phylo[,c(5,7,8,19,20)]
+final_data_phylo = final_data_phylo[,c(1,5,7,8,19,20)]
+# final_data_phylo = final_data_phylo[,c(5,7,8,19,20)]
 
-# Take mean of EOC r values across replicates
-summ_eoc_r = summarySE(final_data_phylo, "mean_r", "Plug_ID")
-summ_eoc_r$pair_ID = substr(summ_eoc_r$Plug_ID,2,3)
-summ_eoc_r$ph_ID = substr(summ_eoc_r$Plug_ID,4,4)
-summ_eoc_r$Fun_ID = substr(summ_eoc_r$Plug_ID,1,1)
-
-# Take mean of EOC K values across replicates
-summ_eoc_K = summarySE(final_data_phylo, "mean_K", "Plug_ID")
-summ_eoc_K$pair_ID = substr(summ_eoc_K$Plug_ID,2,3)
-summ_eoc_K$ph_ID = substr(summ_eoc_K$Plug_ID,4,4)
-summ_eoc_K$Fun_ID = substr(summ_eoc_K$Plug_ID,1,1)
+# # Take mean of EOC r values across replicates
+# summ_eoc_r = summarySE(final_data_phylo, "mean_r", "Plug_ID")
+# summ_eoc_r$pair_ID = substr(summ_eoc_r$Plug_ID,2,3)
+# summ_eoc_r$ph_ID = substr(summ_eoc_r$Plug_ID,4,4)
+# summ_eoc_r$Fun_ID = substr(summ_eoc_r$Plug_ID,1,1)
+# 
+# # Take mean of EOC K values across replicates
+# summ_eoc_K = summarySE(final_data_phylo, "mean_K", "Plug_ID")
+# summ_eoc_K$pair_ID = substr(summ_eoc_K$Plug_ID,2,3)
+# summ_eoc_K$ph_ID = substr(summ_eoc_K$Plug_ID,4,4)
+# summ_eoc_K$Fun_ID = substr(summ_eoc_K$Plug_ID,1,1)
 
 # Add control r/K mean values for comparison plot
 summ_r = summarySE(final_data_eoc[final_data_eoc$cont_ID=="v",], "r", "Plug_ID", na.rm = TRUE)
-summ_eoc_r$r = summ_r$r
+summ_r$Fun_ID = substr(summ_r$Plug_ID,1,1)
+summ_r$PH_ID = substr(summ_r$Plug_ID,4,4)
+summ_r = summ_r[,c(3,7,8)]
+# summ_eoc_r$r = summ_r$r
 summ_K = summarySE(final_data_eoc[final_data_eoc$cont_ID=="v",], "K", "Plug_ID", na.rm = TRUE)
-summ_eoc_K$K = summ_K$K
-
-# Combine
-summ_eoc_r = right_join(summ_eoc_r, dist)
-summ_eoc_K = right_join(summ_eoc_K, dist)
-
-# Plots for r
-eoc_dist_rplot = ggplot(summ_eoc_r, aes(dist, mean_r)) + 
-  geom_point(aes(color=ph_ID)) + 
-  geom_smooth(method = "lm") +
-  xlab("phylogenetic distance") +
-  ylab("EOC r") + 
-  stat_regline_equation(aes(label =  paste(..eq.label.., ..adj.rr.label.., sep = "~~~~")))
-# ggsave("eoc_dist_rplot.png", width = 7, height = 5)
-
-eoc_cont_rplot = ggplot(summ_eoc_r, aes(r, mean_r)) + 
-  geom_point(aes(color=ph_ID)) + 
-  geom_smooth(method = "lm") +
-  xlab("growth rate") +
-  ylab("EOC r") + 
-  stat_regline_equation(aes(label =  paste(..eq.label.., ..adj.rr.label.., sep = "~~~~")))
-# ggsave("eoc_cont_rplot.png", width = 7, height = 5)
-
-# Plots for K
-eoc_dist_Kplot = ggplot(summ_eoc_K, aes(dist, mean_K)) + 
-  geom_point(aes(color=ph_ID)) + 
-  geom_smooth(method = "lm") +
-  xlab("phylogenetic distance") +
-  ylab("EOC K") + 
-  stat_regline_equation(aes(label =  paste(..eq.label.., ..adj.rr.label.., sep = "~~~~")))
-# ggsave("eoc_dist_Kplot.png", width = 7, height = 5)
-
-eoc_cont_Kplot = ggplot(summ_eoc_K, aes(K, mean_K)) + 
-  geom_point(aes(color=ph_ID)) + 
-  geom_smooth(method = "lm") +
-  xlab("colony size") +
-  ylab("EOC K") + 
-  stat_regline_equation(aes(label =  paste(..eq.label.., ..adj.rr.label.., sep = "~~~~")))
-# ggsave("eoc_cont_Kplot.png", width = 7, height = 5)
-
-# Stats for these linear models
-eoc_dist_r = lm(mean_r~dist*ph_ID, summ_eoc_r)
-eoc_cont_r = lm(mean_r~r*ph_ID, summ_eoc_r)
-eoc_dist_K = lm(mean_K~dist*ph_ID, summ_eoc_K)
-eoc_cont_K = lm(mean_K~K*ph_ID, summ_eoc_K)
+# summ_eoc_K$K = summ_K$K
+# 
+# # Combine
+# summ_eoc_r = right_join(summ_eoc_r, dist)
+# summ_eoc_K = right_join(summ_eoc_K, dist)
+# 
+# # Plots for r
+# eoc_dist_rplot = ggplot(summ_eoc_r, aes(dist, mean_r)) + 
+#   geom_point(aes(color=ph_ID)) + 
+#   geom_smooth(method = "lm") +
+#   xlab("phylogenetic distance") +
+#   ylab("EOC r") + 
+#   stat_regline_equation(aes(label =  paste(..eq.label.., ..adj.rr.label.., sep = "~~~~")))
+# # ggsave("eoc_dist_rplot.png", width = 7, height = 5)
+# 
+# eoc_cont_rplot = ggplot(summ_eoc_r, aes(r, mean_r)) + 
+#   geom_point(aes(color=ph_ID)) + 
+#   geom_smooth(method = "lm") +
+#   xlab("growth rate") +
+#   ylab("EOC r") + 
+#   stat_regline_equation(aes(label =  paste(..eq.label.., ..adj.rr.label.., sep = "~~~~")))
+# # ggsave("eoc_cont_rplot.png", width = 7, height = 5)
+# 
+# # Plots for K
+# eoc_dist_Kplot = ggplot(summ_eoc_K, aes(dist, mean_K)) + 
+#   geom_point(aes(color=ph_ID)) + 
+#   geom_smooth(method = "lm") +
+#   xlab("phylogenetic distance") +
+#   ylab("EOC K") + 
+#   stat_regline_equation(aes(label =  paste(..eq.label.., ..adj.rr.label.., sep = "~~~~")))
+# # ggsave("eoc_dist_Kplot.png", width = 7, height = 5)
+# 
+# eoc_cont_Kplot = ggplot(summ_eoc_K, aes(K, mean_K)) + 
+#   geom_point(aes(color=ph_ID)) + 
+#   geom_smooth(method = "lm") +
+#   xlab("colony size") +
+#   ylab("EOC K") + 
+#   stat_regline_equation(aes(label =  paste(..eq.label.., ..adj.rr.label.., sep = "~~~~")))
+# # ggsave("eoc_cont_Kplot.png", width = 7, height = 5)
+# 
+# # Stats for these linear models
+# eoc_dist_r = lm(mean_r~dist*ph_ID, summ_eoc_r)
+# eoc_cont_r = lm(mean_r~r*ph_ID, summ_eoc_r)
+# eoc_dist_K = lm(mean_K~dist*ph_ID, summ_eoc_K)
+# eoc_cont_K = lm(mean_K~K*ph_ID, summ_eoc_K)
 
 # linear mixed effects model
 final_data_phylo$PH_ID = substr(final_data_phylo$Plug_ID,4,4)
 final_data_phylo$Treat_ID = substr(final_data_phylo$Plug_ID,2,4)
 final_data_phylo$pair_ID = substr(final_data_phylo$Plug_ID,2,3)
+final_data_phylo$Fun_ID = toupper(substr(final_data_phylo$Plug_ID,1,1))
 final_data_phylo = right_join(final_data_phylo, dist)
+final_data_phylo = right_join(final_data_phylo, summ_r, by = c("Fun_ID", "PH_ID"))
+colnames(final_data_phylo)[12] = c("cont_rmean")
 
-mod1 = lmer(mean_r ~ dist * PH_ID + (1|Treat_ID), data = final_data_phylo)
-mod2 = lmer(mean_r ~ dist + PH_ID + (1|Treat_ID), data = final_data_phylo)
-mod3 = lmer(mean_r ~ r + PH_ID + (1|Treat_ID), data = final_data_phylo)
-mod4 = lmer(mean_K ~ r + PH_ID + (1|Treat_ID), data = final_data_phylo)
-mod5 = lmer(mean_K ~ dist + PH_ID + (1|Treat_ID), data = final_data_phylo)
-mod6 = lmer(mean_K ~ K + PH_ID + (1|Treat_ID), data = final_data_phylo)
-mod7 = lmer(mean_r ~ K + PH_ID + (1|Treat_ID), data = final_data_phylo)
+# mod1 = lmer(mean_r ~ dist * PH_ID + (1|Treat_ID), data = final_data_phylo)
+# mod2 = lmer(mean_r ~ dist + PH_ID + (1|Treat_ID), data = final_data_phylo)
+# mod3 = lmer(mean_r ~ r + PH_ID + (1|Treat_ID), data = final_data_phylo)
+# mod4 = lmer(mean_K ~ r + PH_ID + (1|Treat_ID), data = final_data_phylo)
+# mod5 = lmer(mean_K ~ dist + PH_ID + (1|Treat_ID), data = final_data_phylo)
+# mod6 = lmer(mean_K ~ K + PH_ID + (1|Treat_ID), data = final_data_phylo)
+# mod7 = lmer(mean_r ~ K + PH_ID + (1|Treat_ID), data = final_data_phylo)
+# mod12 = lmer(mean_r ~ K + PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylo)
+# mod13 = lmer(mean_K ~ r + PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylo)
+# mod14 = lmer(mean_r ~ r + PH_ID  + (1|Plate_ID), data = final_data_phylo)
+# mod15 = lmer(mean_r ~ dist + PH_ID  + (1|Plate_ID), data = final_data_phylo)
 
-summary(mod2)
-summary(mod3)
-summary(mod4)
-summary(mod5)
 
-anova(mod6, mod3)
 
-library(stargazer)
-stargazer(mod3, type="text")
-stargazer(mod6, type="text")
+mod_EOCr_r = lmer(mean_r ~ cont_rmean + PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylo)
+summary(mod_EOCr_r)
+class(mod_EOCr_r) = "lmerMod"
+r.squaredGLMM(mod_EOCr_r)
+EOCr_r = as.data.frame(r.squaredGLMM(mod_EOCr_r))
+EOCr_r_R2 = round(EOCr_r$R2c,4)
 
-ggplot(final_data_phylo, aes(x=K, y=mean_K)) +
-  # facet_wrap(~Treat_ID) +
-  geom_point(aes(color=pair_ID,shape=PH_ID)) +
-  geom_smooth(method = "lm") +
-  stat_regline_equation(aes(label =  paste(..eq.label.., ..adj.rr.label.., sep = "~~~~")))
-  # geom_line(data = cbind(final_data_phylo, pred = predict(mod3)), aes(y=pred, color=pair_ID), size = 1)
+mod_EOCr_dist = lmer(mean_r ~ dist + PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylo)
+summary(mod_EOCr_dist)
+class(mod_EOCr_dist) = "lmerMod"
+r.squaredGLMM(mod_EOCr_dist)
+EOCr_dist = as.data.frame(r.squaredGLMM(mod_EOCr_dist))
+EOCr_dist_R2 = round(EOCr_dist$R2c,4)
 
-ggplot(final_data_phylo, aes(x=dist, y=mean_r)) +
-  # facet_wrap(~Treat_ID) +
-  geom_point(aes(color=pair_ID,shape=PH_ID)) +
-  geom_smooth(method = "lm") +
-  stat_regline_equation(aes(label =  paste(..eq.label.., ..adj.rr.label.., sep = "~~~~")))
-  # geom_line(data = cbind(final_data_phylo, pred = predict(mod3)), aes(y=pred, color=pair_ID), size = 1)
+stargazer(mod_EOCr_r, mod_EOCr_dist,
+  type = "text",
+  #out = "mod_EOCr.htm",
+  dep.var.labels = c("EOCr"),
+  covariate.labels = c("Growth Rate", "Phylogenetic Distance", "pH 7", "constant"),
+  column.labels = c("Trait-based", "Phylogeny-based"),
+  # ci = TRUE,
+  add.lines = list(c("Conditional pseudo-R2", EOCr_r_R2, EOCr_dist_R2)),
+  summary = TRUE,
+  digits = 3
+)
 
-plot(mod2)
-qqnorm(resid(mod2))
-qqline(resid(mod2))
+mod_EOCK_K = lmer(mean_K ~ K + PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylo)
+summary(mod_EOCK_K)
+class(mod_EOCK_K) = "lmerMod"
+r.squaredGLMM(mod_EOCK_K)
+EOCK_K = as.data.frame(r.squaredGLMM(mod_EOCK_K))
+EOCK_K_R2 = round(EOCK_K$R2c,4)
+
+mod_EOCK_dist = lmer(mean_K ~ dist + PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylo)
+summary(mod_EOCK_dist)
+class(mod_EOCK_dist) = "lmerMod"
+r.squaredGLMM(mod_EOCK_dist)
+EOCK_dist = as.data.frame(r.squaredGLMM(mod_EOCK_dist))
+EOCK_dist_R2 = round(EOCK_dist$R2c,4)
+
+stargazer(mod_EOCK_K, mod_EOCK_dist,
+  type = "html",
+  out = "mod_EOCK.htm",
+  dep.var.labels = c("EOCK"),
+  covariate.labels = c("Colony size", "Phylogenetic Distance", "pH 7", "constant"),
+  column.labels = c("Trait-based", "Phylogeny-based"),
+  # ci = TRUE,
+  add.lines = list(c("Conditional pseudo-R2", EOCK_K_R2, EOCK_dist_R2)),
+  summary = TRUE,
+  digits = 3
+)
+
+# stargazer(mod8, type="html", out="EOCrxr_table.htm")
+# stargazer(mod9, type="html", out="EOCrxdist_table.htm")
+# stargazer(mod10, type="html", out="EOCkxK_table.htm")
+# stargazer(mod11, type="html", out="EOCkxdist_table.htm")
+
+# ggplot(final_data_phylo, aes(x=K, y=mean_K)) +
+#   # facet_wrap(~Treat_ID) +
+#   geom_point(aes(color=pair_ID,shape=PH_ID)) +
+#   geom_smooth(method = "lm") +
+#   stat_regline_equation(aes(label =  paste(..eq.label.., ..adj.rr.label.., sep = "~~~~")))
+#   # geom_line(data = cbind(final_data_phylo, pred = predict(mod3)), aes(y=pred, color=pair_ID), size = 1)
+# 
+# ggplot(final_data_phylo, aes(x=dist, y=mean_r)) +
+#   facet_wrap(~Treat_ID) +
+#   geom_point(aes(color=pair_ID,shape=PH_ID)) +
+#   # geom_smooth(method = "lm") +
+#   # stat_regline_equation(aes(label =  paste(..eq.label.., ..adj.rr.label.., sep = "~~~~")))
+#   geom_line(data = cbind(final_data_phylo, pred = predict(mod9)), aes(y=pred, color=pair_ID), size = 1)
+# 
+# plot(mod9)
+# qqnorm(resid(mod9))
+# qqline(resid(mod9))
+
+pred_EOCr_r = ggpredict(mod_EOCr_r, terms = c("cont_rmean", "PH_ID"))
+plot_EOCr_r = ggplot(pred_EOCr_r) + 
+  geom_line(aes(x = x, y = predicted, color = group)) +          # slope
+  geom_ribbon(aes(x = x, ymin = predicted - std.error, ymax = predicted + std.error, fill = group), 
+              alpha = 0.2) +  # error band
+  geom_point(data = final_data_phylo,                      # adding the raw data 
+              aes(x = cont_rmean, y = mean_r, color = PH_ID)) + 
+  labs(x = "control growth rate", y = "mean_r") + 
+  theme_cowplot() +
+  theme(plot.background = element_rect(fill = "white"))
+#ggsave("plot_EOCr_r.png")
+
+pred_EOCr_dist = ggpredict(mod_EOCr_dist, terms = c("dist", "PH_ID"))
+plot_EOCr_dist = ggplot(pred_EOCr_dist) + 
+  geom_line(aes(x = x, y = predicted, color = group)) +          # slope
+  geom_ribbon(aes(x = x, ymin = predicted - std.error, ymax = predicted + std.error, fill = group), 
+              alpha = 0.2) +  # error band
+  geom_point(data = final_data_phylo,                      # adding the raw data 
+              aes(x = dist, y = mean_r, color = PH_ID)) + 
+  labs(x = "dist", y = "mean_r") + 
+  theme_cowplot() +
+  theme(plot.background = element_rect(fill = "white"))
+#ggsave("plot_EOCr_dist.png")
+
+pred_EOCK_K = ggpredict(mod_EOCK_K, terms = c("K", "PH_ID"))
+plot_EOCK_K = ggplot(pred_EOCK_K) + 
+  geom_line(aes(x = x, y = predicted, color = group)) +          # slope
+  geom_ribbon(aes(x = x, ymin = predicted - std.error, ymax = predicted + std.error, fill = group), 
+              alpha = 0.2) +  # error band
+  geom_point(data = final_data_phylo,                      # adding the raw data 
+              aes(x = K, y = mean_K, color = PH_ID)) + 
+  labs(x = "colony size", y = "mean_K") + 
+  theme_cowplot() +
+  theme(plot.background = element_rect(fill = "white"))
+#ggsave("plot_EOCK_K.png")
+
+pred_EOCK_dist = ggpredict(mod_EOCK_dist, terms = c("dist", "PH_ID"))
+plot_EOCK_dist = ggplot(pred_EOCK_dist) + 
+  geom_line(aes(x = x, y = predicted, color = group)) +          # slope
+  geom_ribbon(aes(x = x, ymin = predicted - std.error, ymax = predicted + std.error, fill = group), 
+              alpha = 0.2) +  # error band
+  geom_point(data = final_data_phylo,                      # adding the raw data 
+              aes(x = dist, y = mean_K, color = PH_ID)) + 
+  labs(x = "dist", y = "mean_K") + 
+  theme_cowplot() +
+  theme(plot.background = element_rect(fill = "white"))
+#ggsave("plot_EOCK_dist.png")
 ```

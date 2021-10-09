@@ -163,6 +163,34 @@ for(i in 1:dim(sgdata)[1]){ # for every line of data
   }
   
 }
+
+# redoing models for C. geophilum due to extremely slow growth
+for(i in 1:20){ # for every line of data
+  if((i-1)%%(rowsperfig*colsperfig) == 0){   # plot results in 30-panel figures -- basically checks to see if the i'th step in the for loop is divisible by 30. If it is, then it makes a new figure.
+        par(mar=c(1,1,1,1),mfrow=c(rowsperfig,colsperfig))
+    }
+  
+  hold <- sgdata[i,2:8]
+
+  tester <- hold[!is.na(hold)] # We want to prevent the function from crashing if it runs into a colony which was thrown out (all NA data). First, create a 'tester' variable that only contains data from hold that isn't 'NaN'. 
+  if(length(tester)!=0){  # Second, only enter into the growth rate calculation, if tester contains some data. (In other words, if it's not of length 0)
+  
+  areahold <- rep(NaN,length(hold)) # for some weird reason, R is treating hold as a list instead of a vector. So we built a new vector with the contents of hold.
+  for(j in 1:length(hold)){
+     areahold[j] <- hold[1,j]
+  }
+  
+  initialdaycutoff <- 4
+  
+  lm1 <- lm(log(areahold[2:initialdaycutoff])~days_cont[2:initialdaycutoff])
+  sgdata$r[i] <- summary(lm1)$coefficients[2,1] # Use a linear model to estimate the slope of the first few datapoints to get an estimate for r
+  sgdata$r.pval[i] <- summary(lm1)$coefficients[2,4] #extracts the p value
+  sgdata$r.R2[i] <- summary(lm1)$r.squared # extracts the R2 fit value
+  sgdata$r.F[i] <- summary(lm1)$fstatistic[1] # extracts the f-statistic
+  sgdata$K[i] <- max(areahold,na.rm=TRUE) # estimates K as the maximum area
+  }
+}
+
 ```
 
 # Bind the data together
