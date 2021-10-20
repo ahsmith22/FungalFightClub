@@ -22,14 +22,18 @@ library(stargazer)
 library(ggeffects)
 
 # read in data
+final_data_sin = read_csv("~/FungalFightClub/finaldata1.csv")
+final_data_sin = final_data_sin[final_data_sin$cont_ID=="s",]
 final_data_eoc = read_csv("~/FungalFightClub/final_data_eoc.csv")
 final_data_eoc$PH_ID = as.character(final_data_eoc$PH_ID) # to fix code
 final_data_eoc$Plug_ID = substr(final_data_eoc$Plug_ID,1,4) # to fix code
+Tuk_sin_fin = read_csv("~/FungalFightClub/Tuk_sin_fin.csv")
 Tuk_final = read_csv("~/FungalFightClub/Tuk_final.csv")
 sig_svs_fin = read_csv("~/FungalFightClub/sig_svs_fin.csv")
 sig_eoc_fin = read_csv("~/FungalFightClub/sig_eoc_fin.csv")
 net_rt = read_csv("~/FungalFightClub/FFC Treatments - Reaction Types.csv")
 FFC_nex = read.nexus("~/FungalFightClub/infile.nex.con.tre")
+ffc_n_pair = read_csv("~/FungalFightClub/ffc_n_pair.csv")
 
 # constants
 fungi = c("A","C","H","L","P")
@@ -41,6 +45,52 @@ labs = data.frame(main=c("(a) Amanita muscaria","(b) Cenococcum geophilum","(c) 
 
 # color palette
 BlueRidgePkwy = c("#EC8FA3", "#FCBA65", "#FAECCF", "#8D7F99", "#8C9D57", "#163343")
+```
+
+#Sin Plot
+```{r sin}
+# create sin only df
+final_data_sin = final_data_sin[,c(1:4,7,8)]
+final_data_sin = gather(final_data_sin, "key", "value", -Plate_ID, -Fun_ID, -cont_ID, -PH_ID)
+
+# take control only stats and configure stat labels
+Tuk_sin_fin = Tuk_sin_fin[,c(6,5,8)]
+Tuk_sin_fin$sig = ifelse(0.01<Tuk_sin_fin$`p adj`&Tuk_sin_fin$`p adj`<=0.05,"*",
+                ifelse(0.001<Tuk_sin_fin$`p adj`&Tuk_sin_fin$`p adj`<=0.01,"**","***"))
+Tuk_sin_fin$x = c(0.8,1.8,2.8,0.8,1.8,2.8,3.8)
+Tuk_sin_fin$xend = c(1.2,2.2,3.2,1.2,2.2,3.2,4.2)
+Tuk_sin_fin$y = c(0.28,0.2,0.32,16,10,20,17)
+Tuk_sin_fin$xlab = c(1,2,3,1,2,3,4)
+Tuk_sin_fin$ylab = c(0.29,0.21,0.33,16.5,10.5,20.5,17.5)
+
+# plot growth rate of sin
+sinplot_r = ggplot(final_data_sin[final_data_sin$key=="r",], aes(Fun_ID, value)) + 
+    theme_cowplot() +
+    geom_boxplot(outlier.alpha = 0, aes(fill=PH_ID), color="black", width=0.75) +
+    geom_point(position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.9), aes(Fun_ID,value,fill = PH_ID,alpha=0.7)) +
+    ylab(bquote('growth rate ('*cm^2*'/day)')) +
+    scale_x_discrete(labels = labs$nams) +
+    geom_vline(xintercept = c(1.5,2.5,3.5,4.5), linetype=2, size=0.25) +
+    geom_segment(data = Tuk_sin_fin[1:3,], aes(x=x,xend=xend,y=y,yend=y),color = "black") + 
+    geom_text(data = Tuk_sin_fin[1:3,], aes(xlab, ylab, label = sig)) +
+    theme(legend.position = "none", axis.line.x = element_blank(), axis.ticks.x = element_blank(), axis.title.x = element_blank(), plot.margin = unit(c(1,0,1,1), "cm"), axis.text.x = element_text(face="italic", angle=330, size=10), axis.title.y = element_text(size = 11), plot.background = element_rect(fill = "white"))
+# ggsave("sinplot_r.png", width = 7, height = 5)
+
+# plot colony size of sin
+sinplot_K = ggplot(final_data_sin[final_data_sin$key=="K",], aes(Fun_ID, value)) + 
+    theme_cowplot() +
+    geom_boxplot(outlier.alpha = 0, aes(fill=PH_ID), color="black", width=0.75) +
+    geom_point(position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.9), aes(Fun_ID,value,fill = PH_ID,alpha=0.7)) +
+    ylab(bquote('colony size ('*cm^2*')')) +
+    scale_x_discrete(labels = labs$nams) +
+    geom_vline(xintercept = c(1.5,2.5,3.5,4.5), linetype=2, size=0.25) +
+    geom_segment(data = Tuk_sin_fin[4:7,], aes(x=x,xend=xend,y=y,yend=y),color = "black") + 
+    geom_text(data = Tuk_sin_fin[4:7,], aes(xlab, ylab, label = sig)) +
+    theme(legend.position = "none", axis.line.x = element_blank(), axis.ticks.x = element_blank(), axis.title.x = element_blank(), plot.margin = unit(c(1,0,1,1), "cm"), axis.text.x = element_text(face="italic", angle=330, size=10), axis.title.y = element_text(size = 11), plot.background = element_rect(fill = "white"))
+# ggsave("sinplot_K.png", width = 7, height = 5)
+
+sinplot_r
+sinplot_K
 ```
 
 #Svs Plot
@@ -93,7 +143,7 @@ svsplot_K
 ```{r eoc, fig.height=11, fig.width=8, warning=FALSE}
 # annotation df for significant difference from control
 sig_svs_fin = sig_svs_fin[sig_svs_fin$p1.pH==sig_svs_fin$p2.pH,]
-annot_svs = as.data.frame(sig_svs_fin[,3])
+annot_svs = as.data.frame(sig_svs_fin[,6])
 annot_svs$Fun_ID = sig_svs_fin$Fun
 annot_svs$PH_ID = sig_svs_fin$p1.pH
 annot_svs$pair_ID = ifelse(annot_svs$Fun_ID==sig_svs_fin$p1.f,sig_svs_fin$p2.f,sig_svs_fin$p1.f)
@@ -208,7 +258,7 @@ contpairfin = contpairfin[contpairfin$Fun!=contpairfin$opp,]
 contpairfin5 = contpairfin
 contpairfin7 = contpairfin
 
-# calculate the control comparison (which will be the widtch of network lines)
+# calculate the control comparison (which will be the width of network lines)
 for (x in 1:nrow(contpairfin5)) {
   contpairfin5$width_r[x] = (final_data_svs5[final_data_svs5$Fun_ID==contpairfin5$Fun[x],"mean_r"])/(final_data_svs5[final_data_svs5$Fun_ID==contpairfin5$opp[x],"mean_r"])
   contpairfin5$width_K[x] = (final_data_svs5[final_data_svs5$Fun_ID==contpairfin5$Fun[x],"mean_K"])/(final_data_svs5[final_data_svs5$Fun_ID==contpairfin5$opp[x],"mean_K"])
@@ -397,16 +447,21 @@ net_rt = net_rt[,1:3]
 net_rt$Fun_ID = paste(net_rt$Plug_ID, substr(net_rt$Plate_ID,1,2), sep="")
 net_rt$PH_ID = substr(net_rt$Plate_ID,3,3)
 
+ffc_n_pair$PH_ID = substr(ffc_n_pair$pair_ID,4,4)
+ffc_n_pair$Fun_ID = substr(ffc_n_pair$pair_ID,1,3)
+ffc_n_pair5 = ffc_n_pair[ffc_n_pair$PH_ID==5,]
+ffc_n_pair7 = ffc_n_pair[ffc_n_pair$PH_ID==7,]
 # reaction type pH 5
 rt_netval_5 = net_rt[net_rt$PH_ID==5,] %>% 
   dplyr::group_by(Fun_ID) %>% 
   dplyr::summarise(IOA = sum(RT))
-rt_netval_5$width = rt_netval_5$IOA/10
+rt_netval_5 = left_join(rt_netval_5, ffc_n_pair5[,c(2,4)])
+rt_netval_5$width = rt_netval_5$IOA/rt_netval_5$nfun
 
 nodes = data.frame(id = 1:5, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
 edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5), 
                    to = c(2,3,4,5,1,3,4,5,1,2,4,5,1,2,3,5,1,2,3,4), 
-                   width= c(1.2,1,0.8,2.6,0,0,0,0,1,3.6,2,1.9,1,1.9,2,1,0.2,2.7,1,0.8),
+                   width= c(1.2,1,0.8,2.6,0,0,0,0,1,4.5,2,1.9,1,3.8,2,1,0.2,3,1,0.8),
                    smooth = c(FALSE,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,FALSE,TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,FALSE,TRUE,TRUE,TRUE,TRUE), 
                    length = c(rep(300, 20)),
                    arrows = c(rep("to", 20)))
@@ -425,12 +480,13 @@ rt5 = visNetwork(nodes, edges, width = "100%", height = 500) %>%
 rt_netval_7 = net_rt[net_rt$PH_ID==7,] %>% 
   dplyr::group_by(Fun_ID) %>% 
   dplyr::summarise(IOA = sum(RT))
-rt_netval_7$width = rt_netval_7$IOA/10
+rt_netval_7 = left_join(rt_netval_7, ffc_n_pair7[,c(2,4)])
+rt_netval_7$width = rt_netval_7$IOA/rt_netval_7$nfun
 
 nodes = data.frame(id = 1:5, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
 edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5), 
                    to = c(2,3,4,5,1,3,4,5,1,2,4,5,1,2,3,5,1,2,3,4), 
-                   width= c(1.2,1,0.1,2.2,0,0,0,1,1,3,1,1,1.9,1.8,1,1,0.4,3,1,1),
+                   width= c(1.3,1.7,0.1,2.2,0,0,0,1,1.7,3.3,1.3,1,2.1,2,1.3,1,0.4,3,1,1),
                    smooth = c(FALSE,FALSE,FALSE,FALSE,TRUE,FALSE,FALSE,FALSE,TRUE,TRUE,FALSE,FALSE,TRUE,TRUE,TRUE,FALSE,TRUE,TRUE,TRUE,TRUE), 
                    length = c(rep(300, 20)),
                    arrows = c(rep("to", 20)))
@@ -468,96 +524,74 @@ dist = data.frame(pair_ID = c("CA","CH","CL","CP","HA","HP","LA","LH","LP","PA")
 # Prepare data
 final_data_phylo = final_data_eoc[final_data_eoc$cont_ID==0,]
 final_data_phylo = final_data_phylo[,c(1,5,7,8,19,20)]
-# final_data_phylo = final_data_phylo[,c(5,7,8,19,20)]
 
-# # Take mean of EOC r values across replicates
-# summ_eoc_r = summarySE(final_data_phylo, "mean_r", "Plug_ID")
-# summ_eoc_r$pair_ID = substr(summ_eoc_r$Plug_ID,2,3)
-# summ_eoc_r$ph_ID = substr(summ_eoc_r$Plug_ID,4,4)
-# summ_eoc_r$Fun_ID = substr(summ_eoc_r$Plug_ID,1,1)
-# 
-# # Take mean of EOC K values across replicates
-# summ_eoc_K = summarySE(final_data_phylo, "mean_K", "Plug_ID")
-# summ_eoc_K$pair_ID = substr(summ_eoc_K$Plug_ID,2,3)
-# summ_eoc_K$ph_ID = substr(summ_eoc_K$Plug_ID,4,4)
-# summ_eoc_K$Fun_ID = substr(summ_eoc_K$Plug_ID,1,1)
-
-# Add control r/K mean values for comparison plot
+# Add single control r/K mean values
 summ_r = summarySE(final_data_eoc[final_data_eoc$cont_ID=="v",], "r", "Plug_ID", na.rm = TRUE)
 summ_r$Fun_ID = substr(summ_r$Plug_ID,1,1)
 summ_r$PH_ID = substr(summ_r$Plug_ID,4,4)
 summ_r = summ_r[,c(3,7,8)]
-# summ_eoc_r$r = summ_r$r
-summ_K = summarySE(final_data_eoc[final_data_eoc$cont_ID=="v",], "K", "Plug_ID", na.rm = TRUE)
-# summ_eoc_K$K = summ_K$K
-# 
-# # Combine
-# summ_eoc_r = right_join(summ_eoc_r, dist)
-# summ_eoc_K = right_join(summ_eoc_K, dist)
-# 
-# # Plots for r
-# eoc_dist_rplot = ggplot(summ_eoc_r, aes(dist, mean_r)) + 
-#   geom_point(aes(color=ph_ID)) + 
-#   geom_smooth(method = "lm") +
-#   xlab("phylogenetic distance") +
-#   ylab("EOC r") + 
-#   stat_regline_equation(aes(label =  paste(..eq.label.., ..adj.rr.label.., sep = "~~~~")))
-# # ggsave("eoc_dist_rplot.png", width = 7, height = 5)
-# 
-# eoc_cont_rplot = ggplot(summ_eoc_r, aes(r, mean_r)) + 
-#   geom_point(aes(color=ph_ID)) + 
-#   geom_smooth(method = "lm") +
-#   xlab("growth rate") +
-#   ylab("EOC r") + 
-#   stat_regline_equation(aes(label =  paste(..eq.label.., ..adj.rr.label.., sep = "~~~~")))
-# # ggsave("eoc_cont_rplot.png", width = 7, height = 5)
-# 
-# # Plots for K
-# eoc_dist_Kplot = ggplot(summ_eoc_K, aes(dist, mean_K)) + 
-#   geom_point(aes(color=ph_ID)) + 
-#   geom_smooth(method = "lm") +
-#   xlab("phylogenetic distance") +
-#   ylab("EOC K") + 
-#   stat_regline_equation(aes(label =  paste(..eq.label.., ..adj.rr.label.., sep = "~~~~")))
-# # ggsave("eoc_dist_Kplot.png", width = 7, height = 5)
-# 
-# eoc_cont_Kplot = ggplot(summ_eoc_K, aes(K, mean_K)) + 
-#   geom_point(aes(color=ph_ID)) + 
-#   geom_smooth(method = "lm") +
-#   xlab("colony size") +
-#   ylab("EOC K") + 
-#   stat_regline_equation(aes(label =  paste(..eq.label.., ..adj.rr.label.., sep = "~~~~")))
-# # ggsave("eoc_cont_Kplot.png", width = 7, height = 5)
-# 
-# # Stats for these linear models
-# eoc_dist_r = lm(mean_r~dist*ph_ID, summ_eoc_r)
-# eoc_cont_r = lm(mean_r~r*ph_ID, summ_eoc_r)
-# eoc_dist_K = lm(mean_K~dist*ph_ID, summ_eoc_K)
-# eoc_cont_K = lm(mean_K~K*ph_ID, summ_eoc_K)
 
-# linear mixed effects model
+summ_K = summarySE(final_data_eoc[final_data_eoc$cont_ID=="v",], "K", "Plug_ID", na.rm = TRUE)
+summ_K$Fun_ID = substr(summ_K$Plug_ID,1,1)
+summ_K$PH_ID = substr(summ_K$Plug_ID,4,4)
+summ_K = summ_K[,c(3,7,8)]
+
 final_data_phylo$PH_ID = substr(final_data_phylo$Plug_ID,4,4)
 final_data_phylo$Treat_ID = substr(final_data_phylo$Plug_ID,2,4)
 final_data_phylo$pair_ID = substr(final_data_phylo$Plug_ID,2,3)
 final_data_phylo$Fun_ID = toupper(substr(final_data_phylo$Plug_ID,1,1))
 final_data_phylo = right_join(final_data_phylo, dist)
 final_data_phylo = right_join(final_data_phylo, summ_r, by = c("Fun_ID", "PH_ID"))
+final_data_phylo = right_join(final_data_phylo, summ_K, by = c("Fun_ID", "PH_ID"))
 colnames(final_data_phylo)[12] = c("cont_rmean")
+colnames(final_data_phylo)[13] = c("cont_Kmean")
 
-# mod1 = lmer(mean_r ~ dist * PH_ID + (1|Treat_ID), data = final_data_phylo)
-# mod2 = lmer(mean_r ~ dist + PH_ID + (1|Treat_ID), data = final_data_phylo)
-# mod3 = lmer(mean_r ~ r + PH_ID + (1|Treat_ID), data = final_data_phylo)
-# mod4 = lmer(mean_K ~ r + PH_ID + (1|Treat_ID), data = final_data_phylo)
-# mod5 = lmer(mean_K ~ dist + PH_ID + (1|Treat_ID), data = final_data_phylo)
-# mod6 = lmer(mean_K ~ K + PH_ID + (1|Treat_ID), data = final_data_phylo)
-# mod7 = lmer(mean_r ~ K + PH_ID + (1|Treat_ID), data = final_data_phylo)
-# mod12 = lmer(mean_r ~ K + PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylo)
-# mod13 = lmer(mean_K ~ r + PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylo)
-# mod14 = lmer(mean_r ~ r + PH_ID  + (1|Plate_ID), data = final_data_phylo)
-# mod15 = lmer(mean_r ~ dist + PH_ID  + (1|Plate_ID), data = final_data_phylo)
+# calculate rdist
+final_data_rdist = as.data.frame(final_data_eocc[final_data_eocc$cont_ID=="v",])
+final_data_rdist$Treat_ID = substr(final_data_rdist$Plate_ID, 1, 3)
+final_data_rdist5 = final_data_rdist[final_data_rdist$PH_ID==5,]
+final_data_rdist7 = final_data_rdist[final_data_rdist$PH_ID==7,]
 
+rdist5Tuk = TukeyHSD(aov(lm(r~Treat_ID, data = final_data_rdist5)))
+rdist5Tuk = as.data.frame(rdist5Tuk[1])
+rdist5Tuk$Treat_ID.diff = abs(rdist5Tuk$Treat_ID.diff)
+rdist5Tuk$Treat_ID = c("CA5","HA5","LA5","PA5","CH5","CL5","CP5","LH5","HP5","LP5")
+rdist5Tuk = rdist5Tuk[c(5,1,4)]
 
+rdist7Tuk = TukeyHSD(aov(lm(r~Treat_ID, data = final_data_rdist7)))
+rdist7Tuk = as.data.frame(rdist7Tuk[1])
+rdist7Tuk$Treat_ID.diff = abs(rdist7Tuk$Treat_ID.diff)
+rdist7Tuk$Treat_ID = c("CA7","HA7","LA7","PA7","CH7","CL7","CP7","LH7","HP7","LP7")
+rdist7Tuk = rdist7Tuk[c(5,1,4)]
 
+rdistTuk = rbind(rdist5Tuk, rdist7Tuk)
+
+final_data_phylodiff = final_data_phylo
+final_data_phylodiff = left_join(final_data_phylo, rdistTuk)
+
+# calculate Kdist
+final_data_Kdist = as.data.frame(final_data_eocc[final_data_eocc$cont_ID=="v",])
+final_data_Kdist$Treat_ID = substr(final_data_Kdist$Plate_ID, 1, 3)
+final_data_Kdist5 = final_data_Kdist[final_data_Kdist$PH_ID==5,]
+final_data_Kdist7 = final_data_Kdist[final_data_Kdist$PH_ID==7,]
+
+Kdist5Tuk = TukeyHSD(aov(lm(K~Treat_ID, data = final_data_Kdist5)))
+Kdist5Tuk = as.data.frame(Kdist5Tuk[1])
+Kdist5Tuk$Treat_ID.diff = abs(Kdist5Tuk$Treat_ID.diff)
+Kdist5Tuk$Treat_ID = c("CA5","HA5","LA5","PA5","CH5","CL5","CP5","LH5","HP5","LP5")
+Kdist5Tuk = Kdist5Tuk[c(5,1,4)]
+
+Kdist7Tuk = TukeyHSD(aov(lm(K~Treat_ID, data = final_data_Kdist7)))
+Kdist7Tuk = as.data.frame(Kdist7Tuk[1])
+Kdist7Tuk$Treat_ID.diff = abs(Kdist7Tuk$Treat_ID.diff)
+Kdist7Tuk$Treat_ID = c("CA7","HA7","LA7","PA7","CH7","CL7","CP7","LH7","HP7","LP7")
+Kdist7Tuk = Kdist7Tuk[c(5,1,4)]
+
+KdistTuk = rbind(Kdist5Tuk, Kdist7Tuk)
+final_data_phylodiff = left_join(final_data_phylo, KdistTuk)
+
+# linear mixed effect models
+# for r
 mod_EOCr_r = lmer(mean_r ~ cont_rmean + PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylo)
 summary(mod_EOCr_r)
 class(mod_EOCr_r) = "lmerMod"
@@ -572,19 +606,15 @@ r.squaredGLMM(mod_EOCr_dist)
 EOCr_dist = as.data.frame(r.squaredGLMM(mod_EOCr_dist))
 EOCr_dist_R2 = round(EOCr_dist$R2c,4)
 
-stargazer(mod_EOCr_r, mod_EOCr_dist,
-  type = "text",
-  #out = "mod_EOCr.htm",
-  dep.var.labels = c("EOCr"),
-  covariate.labels = c("Growth Rate", "Phylogenetic Distance", "pH 7", "constant"),
-  column.labels = c("Trait-based", "Phylogeny-based"),
-  # ci = TRUE,
-  add.lines = list(c("Conditional pseudo-R2", EOCr_r_R2, EOCr_dist_R2)),
-  summary = TRUE,
-  digits = 3
-)
+mod_EOCr_rdiff = lmer(mean_r ~ Treat_ID.diff + PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylodiff)
+summary(mod_EOCr_rdiff)
+class(mod_EOCr_rdiff) = "lmerMod"
+r.squaredGLMM(mod_EOCr_rdiff)
+EOCr_rdiff = as.data.frame(r.squaredGLMM(mod_EOCr_rdiff))
+EOCr_r_R2diff = round(EOCr_rdiff$R2c,4)
 
-mod_EOCK_K = lmer(mean_K ~ K + PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylo)
+# for K
+mod_EOCK_K = lmer(mean_K ~ cont_Kmean + PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylo)
 summary(mod_EOCK_K)
 class(mod_EOCK_K) = "lmerMod"
 r.squaredGLMM(mod_EOCK_K)
@@ -598,41 +628,62 @@ r.squaredGLMM(mod_EOCK_dist)
 EOCK_dist = as.data.frame(r.squaredGLMM(mod_EOCK_dist))
 EOCK_dist_R2 = round(EOCK_dist$R2c,4)
 
-stargazer(mod_EOCK_K, mod_EOCK_dist,
+mod_EOCK_Kdiff = lmer(mean_K ~ Treat_ID.diff + PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylodiff)
+summary(mod_EOCK_Kdiff)
+class(mod_EOCK_Kdiff) = "lmerMod"
+r.squaredGLMM(mod_EOCK_Kdiff)
+EOCK_Kdiff = as.data.frame(r.squaredGLMM(mod_EOCK_Kdiff))
+EOCK_r_R2diff = round(EOCK_Kdiff$R2c,4)
+
+# stargazer table
+#for r
+stargazer(mod_EOCr_r, mod_EOCr_dist,
+  type = "text",
+  #out = "mod_EOCr.htm",
+  dep.var.labels = c("EOCr"),
+  covariate.labels = c("Growth Rate", "Phylogenetic Distance", "pH 7", "constant"),
+  column.labels = c("Trait-based", "Phylogeny-based"),
+  add.lines = list(c("Conditional pseudo-R2", EOCr_r_R2, EOCr_dist_R2)),
+  summary = TRUE,
+  digits = 3
+)
+
+stargazer(mod_EOCr_rdiff, mod_EOCr_dist,
   type = "html",
-  out = "mod_EOCK.htm",
+  # out = "mod_EOCrdiff_dist.htm",
+  dep.var.labels = c("EOCr"),
+  covariate.labels = c("Growth Rate Distance", "Phylogenetic Distance", "pH 7", "constant"),
+  column.labels = c("Trait-based", "Phylogeny-based"),
+  add.lines = list(c("Conditional pseudo-R2", EOCr_r_R2diff, EOCr_dist_R2)),
+  summary = TRUE,
+  digits = 3
+)
+
+# for K
+stargazer(mod_EOCK_K, mod_EOCK_dist,
+  type = "text",
+  # out = "mod_EOCK.htm",
   dep.var.labels = c("EOCK"),
   covariate.labels = c("Colony size", "Phylogenetic Distance", "pH 7", "constant"),
   column.labels = c("Trait-based", "Phylogeny-based"),
-  # ci = TRUE,
   add.lines = list(c("Conditional pseudo-R2", EOCK_K_R2, EOCK_dist_R2)),
   summary = TRUE,
   digits = 3
 )
 
-# stargazer(mod8, type="html", out="EOCrxr_table.htm")
-# stargazer(mod9, type="html", out="EOCrxdist_table.htm")
-# stargazer(mod10, type="html", out="EOCkxK_table.htm")
-# stargazer(mod11, type="html", out="EOCkxdist_table.htm")
+stargazer(mod_EOCK_Kdiff, mod_EOCK_dist,
+  type = "html",
+  # out = "mod_EOCKdiff_dist.htm",
+  dep.var.labels = c("EOCK"),
+  covariate.labels = c("Colony Size Distance", "Phylogenetic Distance", "pH 7", "constant"),
+  column.labels = c("Trait-based", "Phylogeny-based"),
+  add.lines = list(c("Conditional pseudo-R2", EOCK_r_R2diff, EOCK_dist_R2)),
+  summary = TRUE,
+  digits = 3
+)
 
-# ggplot(final_data_phylo, aes(x=K, y=mean_K)) +
-#   # facet_wrap(~Treat_ID) +
-#   geom_point(aes(color=pair_ID,shape=PH_ID)) +
-#   geom_smooth(method = "lm") +
-#   stat_regline_equation(aes(label =  paste(..eq.label.., ..adj.rr.label.., sep = "~~~~")))
-#   # geom_line(data = cbind(final_data_phylo, pred = predict(mod3)), aes(y=pred, color=pair_ID), size = 1)
-# 
-# ggplot(final_data_phylo, aes(x=dist, y=mean_r)) +
-#   facet_wrap(~Treat_ID) +
-#   geom_point(aes(color=pair_ID,shape=PH_ID)) +
-#   # geom_smooth(method = "lm") +
-#   # stat_regline_equation(aes(label =  paste(..eq.label.., ..adj.rr.label.., sep = "~~~~")))
-#   geom_line(data = cbind(final_data_phylo, pred = predict(mod9)), aes(y=pred, color=pair_ID), size = 1)
-# 
-# plot(mod9)
-# qqnorm(resid(mod9))
-# qqline(resid(mod9))
-
+# graphing the linear mixed effect models
+# for r
 pred_EOCr_r = ggpredict(mod_EOCr_r, terms = c("cont_rmean", "PH_ID"))
 plot_EOCr_r = ggplot(pred_EOCr_r) + 
   geom_line(aes(x = x, y = predicted, color = group)) +          # slope
@@ -657,6 +708,19 @@ plot_EOCr_dist = ggplot(pred_EOCr_dist) +
   theme(plot.background = element_rect(fill = "white"))
 #ggsave("plot_EOCr_dist.png")
 
+pred_EOCr_rdiff = ggpredict(mod_EOCr_rdiff, terms = c("Treat_ID.diff", "PH_ID"))
+plot_EOCr_rdiff = ggplot(pred_EOCr_rdiff) + 
+  geom_line(aes(x = x, y = predicted, color = group)) +          # slope
+  geom_ribbon(aes(x = x, ymin = predicted - std.error, ymax = predicted + std.error, fill = group), 
+              alpha = 0.2) +  # error band
+  geom_point(data = final_data_phylodiff,                      # adding the raw data 
+             aes(x = Treat_ID.diff, y = mean_r, color = PH_ID)) + 
+  labs(x = "growth rate dist", y = "mean_r") + 
+  theme_cowplot() +
+  theme(plot.background = element_rect(fill = "white"))
+# ggsave("plot_EOCr_rdiff.png")
+
+# for K
 pred_EOCK_K = ggpredict(mod_EOCK_K, terms = c("K", "PH_ID"))
 plot_EOCK_K = ggplot(pred_EOCK_K) + 
   geom_line(aes(x = x, y = predicted, color = group)) +          # slope
@@ -680,4 +744,16 @@ plot_EOCK_dist = ggplot(pred_EOCK_dist) +
   theme_cowplot() +
   theme(plot.background = element_rect(fill = "white"))
 #ggsave("plot_EOCK_dist.png")
+
+pred_EOCK_Kdiff = ggpredict(mod_EOCK_Kdiff, terms = c("Treat_ID.diff", "PH_ID"))
+plot_EOCK_Kdiff = ggplot(pred_EOCK_Kdiff) + 
+  geom_line(aes(x = x, y = predicted, color = group)) +          # slope
+  geom_ribbon(aes(x = x, ymin = predicted - std.error, ymax = predicted + std.error, fill = group), 
+              alpha = 0.2) +  # error band
+  geom_point(data = final_data_phylodiff,                      # adding the raw data 
+             aes(x = Treat_ID.diff, y = mean_K, color = PH_ID)) + 
+  labs(x = "colony size dist", y = "mean_K") + 
+  theme_cowplot() +
+  theme(plot.background = element_rect(fill = "white"))
+#ggsave("plot_EOCK_Kdiff.png")
 ```

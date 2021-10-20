@@ -12,7 +12,7 @@ library(Rmisc)
 library(tidyverse)
 
 # read in data
-final_data_eoc = read_csv("~/FungalFightClub/finaldata1.csv")
+final_data = read_csv("~/FungalFightClub/finaldata1.csv")
 
 # constants
 fungi = c("A","C","H","L","P")
@@ -22,33 +22,34 @@ value = c("r","K")
 
 ```{r data}
 # format and clean data
-final_data_eoc = final_data_eoc[,c(1:4,7)]
-final_data_eoc$cont_ID = ifelse(substr(final_data_eoc$Plate_ID,2,2) == "v", "v",
-                  ifelse(substr(final_data_eoc$Plate_ID,2,2) == "s", "s", 0)) # v for svs control, s for single control, 0 for pair
-final_data_eocp = final_data_eoc[final_data_eoc$cont_ID==0,]
-final_data_eocc = final_data_eoc[final_data_eoc$cont_ID=="v"|final_data_eoc$cont_ID=="s",]
+final_data = final_data[,c(1:4,7)]
+final_data$cont_ID = ifelse(substr(final_data$Plate_ID,2,2) == "v", "v",
+                  ifelse(substr(final_data$Plate_ID,2,2) == "s", "s", 0)) # v for svs control, s for single control, 0 for pair
+final_datap = final_data[final_data$cont_ID==0,]
+final_datac = final_data[final_data$cont_ID=="v"|final_data$cont_ID=="s",]
 
 # format pairs
-final_data_eocp$Fun_ID = toupper(final_data_eocp$Plug_ID) # Fungal ID (A, C, H, L, or P)
-final_data_eocp$Plug_ID = paste(final_data_eocp$Plug_ID, final_data_eocp$Plate_ID, sep = "") # For pair plates, ID of plug
-final_data_eocp$PH_ID = substr(final_data_eocp$Plate_ID, 3, 3) # pH of medium
-final_data_eocp$opp_ID = ifelse(final_data_eocp$Fun_ID == substr(final_data_eocp$Plate_ID, 1, 1), substr(final_data_eocp$Plate_ID, 2, 2), substr(final_data_eocp$Plate_ID, 1, 1)) # For pair plates, ID of opponent plug
+final_datap$Fun_ID = toupper(final_datap$Plug_ID) # Fungal ID (A, C, H, L, or P)
+final_datap$Plug_ID = paste(final_datap$Plug_ID, final_datap$Plate_ID, sep = "") # For pair plates, ID of plug
+final_datap$PH_ID = substr(final_datap$Plate_ID, 3, 3) # pH of medium
+final_datap$opp_ID = ifelse(final_datap$Fun_ID == substr(final_datap$Plate_ID, 1, 1), substr(final_datap$Plate_ID, 2, 2), substr(final_datap$Plate_ID, 1, 1)) # For pair plates, ID of opponent plug
 
 # format controls
-final_data_eocc$Fun_ID = substr(final_data_eocc$Plate_ID, 1, 1)
-final_data_eocc$cont_ID = substr(final_data_eocc$Plate_ID, 2, 2) # either s or v
-final_data_eocc$PH_ID = substr(final_data_eocc$Plate_ID, 3, 3)
-final_data_eocc$Plug_ID = paste(substr(final_data_eocc$Plate_ID, 1, 1), final_data_eocc$Plate_ID, sep = "")
-final_data_eocc$opp_ID = ifelse(final_data_eocc$cont_ID=="v", substr(final_data_eocc$Plate_ID, 1, 1), "N") # v for svs and N for none
+final_datac$Fun_ID = substr(final_datac$Plate_ID, 1, 1)
+final_datac$cont_ID = substr(final_datac$Plate_ID, 2, 2) # either s or v
+final_datac$PH_ID = substr(final_datac$Plate_ID, 3, 3)
+final_datac$Plug_ID = paste(substr(final_datac$Plate_ID, 1, 1), final_datac$Plate_ID, sep = "")
+final_datac$opp_ID = ifelse(final_datac$cont_ID=="v", substr(final_datac$Plate_ID, 1, 1), "N") # v for svs and N for none
 
 # combine
-final_data_eoc = rbind(final_data_eocp, final_data_eocc)
-final_data_eoc = final_data_eoc[,c(1,7,6,8,2,9,3,5)]
+final_data = rbind(final_datap, final_datac)
+final_data = final_data[,c(1,7,6,8,2,9,3,5)]
+# write_csv(final_data, "~/FungalFightClub/finaldata1.csv")
 ```
 
 ```{r eoc calc}
 # calculate the effect of competition metric
-final_data_eoc = final_data_eoc[final_data_eoc$cont_ID!="s",]
+final_data_eoc = final_data[final_data$cont_ID!="s",]
 blank = as.data.frame(matrix(nrow=nrow(final_data_eoc), ncol=12)) # create blank matrix for eoc calc
 final_data_eoc = cbind(final_data_eoc, blank)
 colnames(final_data_eoc) = c("Plate_ID","Fun_ID","cont_ID","PH_ID","Plug_ID","opp_ID","r","K","01","02","03","04","05","06","07","08","09","10","mean_r","mean_K")
@@ -87,9 +88,14 @@ final_data_eoc$mean_K[final_data_eoc$cont_ID=="v" & !is.finite(final_data_eoc$me
 # calc number of replicates
 ffc_n = as.data.frame(base::table(final_data_eoc[final_data_eoc$cont_ID==0, "Plug_ID"]))
 ffc_n$Fungi = paste(toupper(substr(ffc_n$Var1,1,1)), substr(ffc_n$Var1,4,4), sep="") 
+ffc_n$pair_ID = substr(ffc_n$Var1,1,4)
+ffc_n_pair = ffc_n %>% 
+  group_by(pair_ID) %>% 
+  dplyr::summarise(nfun = sum(Freq))
 ffc_n = ffc_n %>% 
   group_by(Fungi) %>% 
   dplyr::summarise(nfun = sum(Freq))
+# write_csv(ffc_n_pair, "~/FungalFightClub/ffc_n_pair.csv")
 
 # calc r wins
 final_data_eoc = final_data_eoc %>% 

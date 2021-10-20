@@ -10,9 +10,20 @@ knitr::opts_chunk$set(echo = TRUE)
 
 library(tidyverse)
 library(vegan)
-
+library(gt)
 
 # read in data
+final_data = read_csv("~/FungalFightClub/finaldata1.csv")
+final_data_sin = final_data[final_data$cont_ID=="s",]
+final_data_sin = final_data_sin[,c(1:4,7,8)]
+final_data_sin = gather(final_data_sin, "key", "value", -Plate_ID, -Fun_ID, -cont_ID, -PH_ID)
+final_data_sin$PH_ID = as.factor(final_data_sin$PH_ID)
+final_data_sin$Fun_ID = as.factor(final_data_sin$Fun_ID)
+
+final_data_svs = final_data[final_data$cont_ID=="v",]
+final_data_svs = final_data_svs[,c(1:4,7,8)]
+final_data_svs = gather(final_data_svs, "key", "value", -Plate_ID, -Fun_ID, -cont_ID, -PH_ID)
+
 final_data_eoc = read_csv("~/FungalFightClub/final_data_eoc.csv")
 final_data_eoc = final_data_eoc[final_data_eoc$cont_ID!="s",]
 final_data_eoc$PH_ID = as.factor(final_data_eoc$PH_ID)
@@ -26,7 +37,37 @@ value = c("r","K")
 
 #Stats
 ```{r stats}
+# ANOVAs for growth measures effected by pH
+summary.aov(aov(value~PH_ID, data = final_data_sin[final_data_sin$key=="r",]))
+summary.aov(aov(value~PH_ID, data = final_data_svs[final_data_svs$key=="r",]))
+summary.aov(aov(value~PH_ID, data = final_data_sin[final_data_sin$key=="K",]))
+summary.aov(aov(value~PH_ID, data = final_data_svs[final_data_svs$key=="K",]))
 
+# stats for sin plot
+Tuk_rsin = TukeyHSD(aov(lm(value~PH_ID*Fun_ID, data=final_data_sin[final_data_sin$key=="r",])))
+Tuk_rsin = as.data.frame((Tuk_rsin[[3]]))
+Tuk_rsin = Tuk_rsin[Tuk_rsin$`p adj`<=0.05,]
+Tuk_rsin = Tuk_rsin %>% 
+    mutate(pair = rownames(Tuk_rsin)) %>% 
+    select(pair, diff, lwr, upr, `p adj`) %>% 
+    mutate(fun=substr(pair,3,3), opp=substr(pair,7,7))
+Tuk_rsin_fin = Tuk_rsin[Tuk_rsin$fun==Tuk_rsin$opp,]
+Tuk_rsin_fin$key = "r"
+
+Tuk_Ksin = TukeyHSD(aov(lm(value~PH_ID*Fun_ID, data=final_data_sin[final_data_sin$key=="K",])))
+Tuk_Ksin = as.data.frame((Tuk_Ksin[[3]]))
+Tuk_Ksin = Tuk_Ksin[Tuk_Ksin$`p adj`<=0.05,]
+Tuk_Ksin = Tuk_Ksin %>% 
+    mutate(pair = rownames(Tuk_Ksin)) %>% 
+    select(pair, diff, lwr, upr, `p adj`) %>% 
+    mutate(fun=substr(pair,3,3), opp=substr(pair,7,7))
+Tuk_Ksin_fin = Tuk_Ksin[Tuk_Ksin$fun==Tuk_Ksin$opp,]
+Tuk_Ksin_fin$key = "K"
+
+Tuk_sin_fin = rbind(Tuk_rsin_fin,Tuk_Ksin_fin)
+# write_csv(Tuk_sin_fin, "~/FungalFightClub/Tuk_sin_fin.csv")
+
+# stats for svs and eoc plots
 for(i in 1:length(fungi)){
   
   # find significant differences in EOC r values between pH conditions
@@ -35,7 +76,7 @@ for(i in 1:length(fungi)){
   Tuk_reoc = Tuk_reoc[Tuk_reoc$`p adj`<=0.05,]
   Tuk_reoc = Tuk_reoc %>% 
     mutate(Fun = fungi[i], pair = rownames(Tuk_reoc)) %>% 
-    select(Fun, pair, `p adj`) %>% 
+    select(Fun, pair, diff, lwr, upr, `p adj`) %>% 
     mutate(p1.f=substr(pair,3,3), p1.pH=substr(pair,1,1), p2.f=substr(pair,7,7), p2.pH=substr(pair,5,5))
   Tuk_reoc_fin = Tuk_reoc[Tuk_reoc$p1.f==Tuk_reoc$p2.f,]
   if(i==1){
@@ -51,7 +92,7 @@ for(i in 1:length(fungi)){
   Tuk_Keoc = Tuk_Keoc[Tuk_Keoc$`p adj`<=0.05,]
   Tuk_Keoc = Tuk_Keoc %>% 
     mutate(Fun = fungi[i], pair = rownames(Tuk_Keoc)) %>% 
-    select(Fun, pair, `p adj`) %>% 
+    select(Fun, pair, diff, lwr, upr, `p adj`) %>% 
     mutate(p1.f=substr(pair,3,3), p1.pH=substr(pair,1,1), p2.f=substr(pair,7,7), p2.pH=substr(pair,5,5))
   Tuk_Keoc_fin = Tuk_Keoc[Tuk_Keoc$p1.f==Tuk_Keoc$p2.f,]
   if(i==1){
@@ -67,7 +108,7 @@ for(i in 1:length(fungi)){
   Tuk_rsvs = Tuk_rsvs[Tuk_rsvs$`p adj`<=0.05,]
   Tuk_rsvs = Tuk_rsvs %>% 
     mutate(Fun = fungi[i], pair = rownames(Tuk_rsvs)) %>% 
-    select(Fun, pair, `p adj`) %>% 
+    select(Fun, pair, diff, lwr, upr, `p adj`) %>% 
     mutate(p1.f=substr(pair,3,3), p1.pH=substr(pair,1,1), p2.f=substr(pair,7,7), p2.pH=substr(pair,5,5))
   Tuk_rsvs_fin = Tuk_rsvs[(Tuk_rsvs$p1.f==fungi[i] | Tuk_rsvs$p2.f==fungi[i]),]
   if(i==1){
@@ -83,7 +124,7 @@ for(i in 1:length(fungi)){
   Tuk_ksvs = Tuk_ksvs[Tuk_ksvs$`p adj`<=0.05,]
   Tuk_ksvs = Tuk_ksvs %>% 
     mutate(Fun = fungi[i], pair = rownames(Tuk_ksvs)) %>% 
-    select(Fun, pair, `p adj`) %>% 
+    select(Fun, pair, diff, lwr, upr, `p adj`) %>% 
     mutate(p1.f=substr(pair,3,3), p1.pH=substr(pair,1,1), p2.f=substr(pair,7,7), p2.pH=substr(pair,5,5))
   Tuk_ksvs_fin = Tuk_ksvs[(Tuk_ksvs$p1.f==fungi[i] | Tuk_ksvs$p2.f==fungi[i]),]
   if(i==1){
@@ -94,7 +135,7 @@ for(i in 1:length(fungi)){
   }
 }
 
-#combine data
+# combine data
 sig_reoc_fin$key = "r"
 sig_Keoc_fin$key = "K"
 sig_eoc_fin = rbind(sig_reoc_fin,sig_Keoc_fin)
@@ -107,4 +148,52 @@ Tuk_final = rbind(sig_eoc_fin, sig_svs_fin)
 # write_csv(Tuk_final, "~/FungalFightClub/Tuk_final.csv")
 # write_csv(sig_svs_fin, "~/FungalFightClub/sig_svs_fin.csv")
 # write_csv(sig_eoc_fin, "~/FungalFightClub/sig_eoc_fin.csv")
+
+# create TukeyHSD results tables
+sig_sin_cont = Tuk_sin_fin[,c(6,2:5,8)]
+colnames(sig_sin_cont) = c("Fungi", "Mean Difference", "Lower Bound", "Upper Bound", "Significance", "Growth Measure")
+Tuk_sincont_table = sig_sin_cont %>% 
+  gt() %>% 
+  cols_align(
+    align = "center",
+    columns = everything()
+  )
+# gtsave(Tuk_sincont_table, "Tuk_sincont_table.htm")
+Tuk_sincont_table
+
+sig_svs_cont = sig_svs_fin[sig_svs_fin$p1.f==sig_svs_fin$p2.f&sig_svs_fin$p2.f==sig_svs_fin$Fun,]
+sig_svs_cont = sig_svs_cont[,c(1,3:6,11)]
+colnames(sig_svs_cont) = c("Fungi", "Mean Difference", "Lower Bound", "Upper Bound", "Significance", "Growth Measure")
+Tuk_svscont_table = sig_svs_cont %>% 
+  gt() %>% 
+  cols_align(
+    align = "center",
+    columns = everything()
+  )
+# gtsave(Tuk_svscont_table, "Tuk_svscont_table.htm")
+Tuk_svscont_table
+
+sig_eoc_fin = sig_eoc_fin[,c(1,7,3:6,11)]
+colnames(sig_eoc_fin) = c("Fungi", "Opponent", "Mean Difference", "Lower Bound", "Upper Bound", "Significance", "Growth Measure")
+Tuk_eocphdiff_table = sig_eoc_fin %>% 
+  gt() %>% 
+  cols_align(
+    align = "center",
+    columns = everything()
+  )
+# gtsave(Tuk_eocphdiff_table, "Tuk_eocphdiff_table.htm")
+Tuk_eocphdiff_table
+
+sig_svs_fin = sig_svs_fin[sig_svs_fin$p1.pH==sig_svs_fin$p2.pH,]
+sig_svs_fin$p1.f = ifelse(sig_svs_fin$Fun==sig_svs_fin$p1.f, sig_svs_fin$p2.f, sig_svs_fin$p1.f)
+sig_svs_fin = sig_svs_fin[,c(1,7,8,3:6,11)]
+colnames(sig_svs_fin) = c("Fungi", "Opponent", "pH", "Mean Difference", "Lower Bound", "Upper Bound", "Significance", "Growth Measure")
+Tuk_svsdiff_table = sig_svs_fin %>% 
+  gt() %>% 
+  cols_align(
+    align = "center",
+    columns = everything()
+  )
+# gtsave(Tuk_svsdiff_table, "Tuk_svsdiff_table.htm")
+Tuk_svsdiff_table
 ```
