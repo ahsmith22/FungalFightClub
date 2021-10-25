@@ -43,6 +43,9 @@ summary.aov(aov(value~PH_ID, data = final_data_svs[final_data_svs$key=="r",]))
 summary.aov(aov(value~PH_ID, data = final_data_sin[final_data_sin$key=="K",]))
 summary.aov(aov(value~PH_ID, data = final_data_svs[final_data_svs$key=="K",]))
 
+# lm eoc
+stargazer(lm(mean_r~Fun_ID*PH_ID*opp_ID, data = final_data_eoc), type = "html", out = "lmeoc.htm")
+
 # stats for sin plot
 Tuk_rsin = TukeyHSD(aov(lm(value~PH_ID*Fun_ID, data=final_data_sin[final_data_sin$key=="r",])))
 Tuk_rsin = as.data.frame((Tuk_rsin[[3]]))

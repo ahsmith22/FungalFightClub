@@ -223,7 +223,7 @@ finaldata$Fun = as.factor(finaldata$Fun)
 finaldata$opp <- ifelse(substr(finaldata$Plate_ID, 2, 2)=="v", substr(finaldata$Plate_ID, 1, 1), 
                    ifelse(toupper(finaldata$Plug_ID)==substr(finaldata$Plate_ID, 1, 1), substr(finaldata$Plate_ID, 2, 2), substr(finaldata$Plate_ID, 1, 1)))
 
-#write_csv(finaldata1, "~/FungalFightClub/finaldata1.csv")
+# write_csv(finaldata1, "~/FungalFightClub/finaldata1.csv")
 ```
 
 # Let's graph some results!
