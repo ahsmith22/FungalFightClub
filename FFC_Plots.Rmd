@@ -138,6 +138,34 @@ svsplot_K = ggplot(final_data_svs[final_data_svs$key=="K",], aes(Fun_ID, value))
 svsplot_r
 svsplot_K
 ```
+```{r eoc gen plot}
+eocgenplot_r = ggplot(final_data_eoc[final_data_eoc$cont_ID==0,], aes(Fun_ID, mean_r)) + 
+    theme_cowplot() +
+    geom_boxplot(outlier.alpha = 0, aes(fill=PH_ID), color="black", width=0.75) +
+    geom_point(position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.9), aes(Fun_ID,mean_r,fill = PH_ID,alpha=0.7)) +
+    ylab(bquote('growth rate ('*cm^2*'/day)')) +
+    scale_x_discrete(labels = labs$nams) +
+    geom_vline(xintercept = c(1.5,2.5,3.5,4.5), linetype=2, size=0.25) +
+    # geom_segment(data = Tuk_final[1:2,], aes(x=x,xend=xend,y=y,yend=y),color = "black") + 
+    # geom_text(data = Tuk_final[1:2,], aes(xlab, ylab, label = sig)) +
+    theme(legend.position = "none", axis.line.x = element_blank(), axis.ticks.x = element_blank(), axis.title.x = element_blank(), plot.margin = unit(c(1,0,1,1), "cm"), axis.text.x = element_text(face="italic", angle=330, size=10), axis.title.y = element_text(size = 11))
+# ggsave("eocgenplot_r.png", width = 7, height = 5)
+
+eocgenplot_K = ggplot(final_data_eoc[final_data_eoc$cont_ID==0,], aes(Fun_ID, mean_K)) + 
+    theme_cowplot() +
+    geom_boxplot(outlier.alpha = 0, aes(fill=PH_ID), color="black", width=0.75) +
+    geom_point(position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.9), aes(Fun_ID,mean_K,fill = PH_ID,alpha=0.7)) +
+    ylab(bquote('colony size ('*cm^2*')')) +
+    scale_x_discrete(labels = labs$nams) +
+    geom_vline(xintercept = c(1.5,2.5,3.5,4.5), linetype=2, size=0.25) +
+    # geom_segment(data = Tuk_final[3:5,], aes(x=x,xend=xend,y=y,yend=y),color = "black") + 
+    # geom_text(data = Tuk_final[3:5,], aes(xlab, ylab, label = sig)) +
+    theme(legend.position = "none", axis.line.x = element_blank(), axis.ticks.x = element_blank(), axis.title.x = element_blank(), plot.margin = unit(c(1,0,1,1), "cm"), axis.text.x = element_text(face="italic", angle=330, size=10), axis.title.y = element_text(size = 11))
+# ggsave("eocgenplot_K.png", width = 7, height = 5)
+
+eocgenplot_r
+eocgenplot_K
+```
 
 #EOC Plot
 ```{r eoc, fig.height=11, fig.width=8, warning=FALSE}
@@ -618,7 +646,10 @@ visExport(rt7, type = "png")
 #Phylogeny Plots
 ```{r phylo}
 # Phylogeny used for distance calculations
+FFC_nex$tip.label = c("Amanita muscaria","Cenococcum geophilum","Paxillus involutus","Hebeloma cylindrosporum","Laccaria bicolor")
+# png("phyloplot.png", width = 1500, height = 1000, res = 200)
 plot.phylo(FFC_nex)
+axisPhylo()
 dist = data.frame(pair_ID = c("CA","CH","CL","CP","HA","HP","LA","LH","LP","PA"), 
                   dist = c(1.008005,0.8745145,0.9270461,0.7354254,0.6383418,0.6250077,0.6908735,0.433387,0.6775393,0.7584986)) # phylogenetic distances for each pairing
 
