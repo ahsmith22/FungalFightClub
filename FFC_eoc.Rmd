@@ -67,8 +67,8 @@ for (u in 1:length(value)) { # iterate for r and K
         eocTa = as.data.frame(matrix(nrow=nrow(svsT),ncol=nrow(par1T))) # matrix rows = svs, cols = 1 opp pair
         for (y in 1:nrow(svsT)) {
           for (z in 1:nrow(par1T)) {
-            logratio_eoc = log(par1T[z,value[u]]/svsT[y,value[u]]) # compute eoc
-            eocTa[z,y] = logratio_eoc 
+            ratio_eoc = (par1T[z,value[u]]/svsT[y,value[u]]) # compute eoc
+            eocTa[z,y] = ratio_eoc 
           }
         }
         final_data_eoc[final_data_eoc$Fun_ID==fungi[x] & final_data_eoc$PH_ID==pH[w] & final_data_eoc$opp_ID==oppT[v],c(9:18)] <- eocTa # store values in parent df

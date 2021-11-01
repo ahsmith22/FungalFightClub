@@ -43,8 +43,22 @@ summary.aov(aov(value~PH_ID, data = final_data_svs[final_data_svs$key=="r",]))
 summary.aov(aov(value~PH_ID, data = final_data_sin[final_data_sin$key=="K",]))
 summary.aov(aov(value~PH_ID, data = final_data_svs[final_data_svs$key=="K",]))
 
-# lm eoc
-stargazer(lm(mean_r~Fun_ID*PH_ID*opp_ID, data = final_data_eoc), type = "html", out = "lmeoc.htm")
+# linear model for EOC
+stargazer(lm(mean_r~Fun_ID*PH_ID*opp_ID, data = final_data_eoc), 
+          # out = "lmeocr.htm",
+          type = "text",
+          dep.var.labels = c("Growth Rate (r)"),
+          summary = TRUE,
+          digits = 3
+)
+
+stargazer(lm(mean_K~Fun_ID*PH_ID*opp_ID, data = final_data_eoc), 
+          # out = "lmeocK.htm",
+          type = "text",
+          dep.var.labels = c("Colony Size (K)"),
+          summary = TRUE,
+          digits = 3
+)
 
 # stats for sin plot
 Tuk_rsin = TukeyHSD(aov(lm(value~PH_ID*Fun_ID, data=final_data_sin[final_data_sin$key=="r",])))
@@ -69,6 +83,30 @@ Tuk_Ksin_fin$key = "K"
 
 Tuk_sin_fin = rbind(Tuk_rsin_fin,Tuk_Ksin_fin)
 # write_csv(Tuk_sin_fin, "~/FungalFightClub/Tuk_sin_fin.csv")
+
+# stats for gen eoc plot
+Tuk_rgeoc = TukeyHSD(aov(lm(mean_r~PH_ID*Fun_ID, data=final_data_eoc)))
+Tuk_rgeoc = as.data.frame((Tuk_rgeoc[[3]]))
+Tuk_rgeoc = Tuk_rgeoc[Tuk_rgeoc$`p adj`<=0.05,]
+Tuk_rgeoc = Tuk_rgeoc %>% 
+    mutate(pair = rownames(Tuk_rgeoc)) %>% 
+    select(pair, diff, lwr, upr, `p adj`) %>% 
+    mutate(fun=substr(pair,3,3), opp=substr(pair,7,7))
+Tuk_rgeoc_fin = Tuk_rgeoc[Tuk_rgeoc$fun==Tuk_rgeoc$opp,]
+Tuk_rgeoc_fin$key = "r"
+
+Tuk_Kgeoc = TukeyHSD(aov(lm(mean_K~PH_ID*Fun_ID, data=final_data_eoc)))
+Tuk_Kgeoc = as.data.frame((Tuk_Kgeoc[[3]]))
+Tuk_Kgeoc = Tuk_Kgeoc[Tuk_Kgeoc$`p adj`<=0.05,]
+Tuk_Kgeoc = Tuk_Kgeoc %>% 
+    mutate(pair = rownames(Tuk_Kgeoc)) %>% 
+    select(pair, diff, lwr, upr, `p adj`) %>% 
+    mutate(fun=substr(pair,3,3), opp=substr(pair,7,7))
+Tuk_Kgeoc_fin = Tuk_Kgeoc[Tuk_Kgeoc$fun==Tuk_Kgeoc$opp,]
+Tuk_Kgeoc_fin$key = "K"
+
+Tuk_geoc_fin = rbind(Tuk_rgeoc_fin,Tuk_Kgeoc_fin)
+# write_csv(Tuk_geoc_fin, "~/FungalFightClub/Tuk_geoc_fin.csv")
 
 # stats for svs and eoc plots
 for(i in 1:length(fungi)){
@@ -175,6 +213,17 @@ Tuk_svscont_table = sig_svs_cont %>%
   )
 # gtsave(Tuk_svscont_table, "Tuk_svscont_table.htm")
 Tuk_svscont_table
+
+sig_gen_eoc = Tuk_geoc_fin[,c(6,2:5,8)]
+colnames(sig_gen_eoc) = c("Fungi", "Mean Difference", "Lower Bound", "Upper Bound", "Significance", "Growth Measure")
+Tuk_geoc_table = sig_gen_eoc %>% 
+  gt() %>% 
+  cols_align(
+    align = "center",
+    columns = everything()
+  )
+# gtsave(Tuk_geoc_table, "Tuk_geoc_table.htm")
+Tuk_geoc_table
 
 sig_eoc_fin = sig_eoc_fin[,c(1,7,3:6,11)]
 colnames(sig_eoc_fin) = c("Fungi", "Opponent", "Mean Difference", "Lower Bound", "Upper Bound", "Significance", "Growth Measure")

@@ -28,6 +28,7 @@ final_data_eoc = read_csv("~/FungalFightClub/final_data_eoc.csv")
 final_data_eoc$PH_ID = as.character(final_data_eoc$PH_ID) # to fix code
 final_data_eoc$Plug_ID = substr(final_data_eoc$Plug_ID,1,4) # to fix code
 Tuk_sin_fin = read_csv("~/FungalFightClub/Tuk_sin_fin.csv")
+Tuk_geoc_fin = read_csv("~/FungalFightclub/Tuk_geoc_fin.csv")
 Tuk_final = read_csv("~/FungalFightClub/Tuk_final.csv")
 sig_svs_fin = read_csv("~/FungalFightClub/sig_svs_fin.csv")
 sig_eoc_fin = read_csv("~/FungalFightClub/sig_eoc_fin.csv")
@@ -41,7 +42,7 @@ pH = c(5,7)
 value = c("r","K")
 
 # labels
-labs = data.frame(main=c("(a) Amanita muscaria","(b) Cenococcum geophilum","(c) Hebeloma cylindrosporum","(d) Laccaria bicolor","(e) Paxillus involutus"), letter=c("(a)","(b)","(c)","(d)","(e)"), nams=c("A. muscaria","C. geophilum","H. cylindrosporum","L. bicolor","P. involutus"), x=c(-0.06,-0.09,-0.1,-0.05,-0.06), y=c(1,1,1,1,1))
+labs = data.frame(main=c("(a) Amanita muscaria","(b) Cenococcum geophilum","(c) Hebeloma cylindrosporum","(d) Laccaria bicolor","(e) Paxillus involutus"), letter=c("(a)","(b)","(c)","(d)","(e)"), nams=c("A. muscaria","C. geophilum","H. cylindrosporum","L. bicolor","P. involutus"), x=c(-0.055,-0.0725,-0.0775,-0.05,-0.055), y=c(1,1,1,1,1))
 
 # color palette
 BlueRidgePkwy = c("#EC8FA3", "#FCBA65", "#FAECCF", "#8D7F99", "#8C9D57", "#163343")
@@ -52,8 +53,9 @@ BlueRidgePkwy = c("#EC8FA3", "#FCBA65", "#FAECCF", "#8D7F99", "#8C9D57", "#16334
 # create sin only df
 final_data_sinp = final_data_sin[,c(1:4,7,8)]
 final_data_sinp = gather(final_data_sinp, "key", "value", -Plate_ID, -Fun_ID, -cont_ID, -PH_ID)
+final_data_sinp$PH_ID = as.factor(final_data_sinp$PH_ID)
 
-# take control only stats and configure stat labels
+# configure stat labels
 Tuk_sin_fin = Tuk_sin_fin[,c(6,5,8)]
 Tuk_sin_fin$sig = ifelse(0.01<Tuk_sin_fin$`p adj`&Tuk_sin_fin$`p adj`<=0.05,"*",
                 ifelse(0.001<Tuk_sin_fin$`p adj`&Tuk_sin_fin$`p adj`<=0.01,"**","***"))
@@ -139,6 +141,17 @@ svsplot_r
 svsplot_K
 ```
 ```{r eoc gen plot}
+# configure stat labels
+Tuk_geoc_fin = Tuk_geoc_fin[,c(6,5,8)]
+Tuk_geoc_fin$sig = ifelse(0.01<Tuk_geoc_fin$`p adj`&Tuk_geoc_fin$`p adj`<=0.05,"*",
+                ifelse(0.001<Tuk_geoc_fin$`p adj`&Tuk_geoc_fin$`p adj`<=0.01,"**","***"))
+Tuk_geoc_fin$x = c(1.8,2.8,1.8,4.8)
+Tuk_geoc_fin$xend = c(2.2,3.2,2.2,5.2)
+Tuk_geoc_fin$y = c(2.4,1.4,2.5,2.3)
+Tuk_geoc_fin$xlab = c(2,3,2,5)
+Tuk_geoc_fin$ylab = c(2.5,1.5,2.6,2.4)
+
+# plot gen eoc
 eocgenplot_r = ggplot(final_data_eoc[final_data_eoc$cont_ID==0,], aes(Fun_ID, mean_r)) + 
     theme_cowplot() +
     geom_boxplot(outlier.alpha = 0, aes(fill=PH_ID), color="black", width=0.75) +
@@ -146,8 +159,8 @@ eocgenplot_r = ggplot(final_data_eoc[final_data_eoc$cont_ID==0,], aes(Fun_ID, me
     ylab(bquote('growth rate ('*cm^2*'/day)')) +
     scale_x_discrete(labels = labs$nams) +
     geom_vline(xintercept = c(1.5,2.5,3.5,4.5), linetype=2, size=0.25) +
-    # geom_segment(data = Tuk_final[1:2,], aes(x=x,xend=xend,y=y,yend=y),color = "black") + 
-    # geom_text(data = Tuk_final[1:2,], aes(xlab, ylab, label = sig)) +
+    geom_segment(data = Tuk_geoc_fin[1:2,], aes(x=x,xend=xend,y=y,yend=y),color = "black") +
+    geom_text(data = Tuk_geoc_fin[1:2,], aes(xlab, ylab, label = sig)) +
     theme(legend.position = "none", axis.line.x = element_blank(), axis.ticks.x = element_blank(), axis.title.x = element_blank(), plot.margin = unit(c(1,0,1,1), "cm"), axis.text.x = element_text(face="italic", angle=330, size=10), axis.title.y = element_text(size = 11))
 # ggsave("eocgenplot_r.png", width = 7, height = 5)
 
@@ -158,8 +171,8 @@ eocgenplot_K = ggplot(final_data_eoc[final_data_eoc$cont_ID==0,], aes(Fun_ID, me
     ylab(bquote('colony size ('*cm^2*')')) +
     scale_x_discrete(labels = labs$nams) +
     geom_vline(xintercept = c(1.5,2.5,3.5,4.5), linetype=2, size=0.25) +
-    # geom_segment(data = Tuk_final[3:5,], aes(x=x,xend=xend,y=y,yend=y),color = "black") + 
-    # geom_text(data = Tuk_final[3:5,], aes(xlab, ylab, label = sig)) +
+    geom_segment(data = Tuk_geoc_fin[3:4,], aes(x=x,xend=xend,y=y,yend=y),color = "black") +
+    geom_text(data = Tuk_geoc_fin[3:4,], aes(xlab, ylab, label = sig)) +
     theme(legend.position = "none", axis.line.x = element_blank(), axis.ticks.x = element_blank(), axis.title.x = element_blank(), plot.margin = unit(c(1,0,1,1), "cm"), axis.text.x = element_text(face="italic", angle=330, size=10), axis.title.y = element_text(size = 11))
 # ggsave("eocgenplot_K.png", width = 7, height = 5)
 
@@ -178,30 +191,27 @@ annot_svs$pair_ID = ifelse(annot_svs$Fun_ID==sig_svs_fin$p1.f,sig_svs_fin$p2.f,s
 annot_svs$key = sig_svs_fin$key
 annot_svs$sig = ifelse(0.01<annot_svs$`p adj`&annot_svs$`p adj`<=0.05,"*",
                 ifelse(0.001<annot_svs$`p adj`&annot_svs$`p adj`<=0.01,"**","***"))
-annot_svs$x = c(2.2,5.2,0.8,1.2,2.8,3.8,1.2,2.2,4.2,5.2,0.8,1.2,1.8,2.2,2.8,3.2,4.8,2.2,3.2,3.8,4.2,4.8,2.2,1.2,2.8,3.8,4.8,3.2,0.8,1.2,2.2,3.8,4.8,4.2,5.2,0.8,1.2,1.8,2.2,2.8,3.2,0.8,1.2,1.8,2.2,2.8,3.2,3.8,4.2)
+annot_svs$x = c(2.2,5.2,0.8,1.2,2.8,3.8,1.2,2.2,4.2,5.2,0.8,1.2,1.8,2.2,2.8,3.2,4.8,2.2,3.2,3.8,4.2,4.8,2.2,1.2,2.8,3.8,4.8,3.2,5.2,0.8,1.2,2.2,3.8,4.8,4.2,5.2,0.8,1.2,2.2,2.8,3.2,0.8,1.2,1.8,2.2,2.8,3.2,3.8,4.2)
 for (i in 1:nrow(annot_svs[annot_svs$key=="r",])) {
   annot_svs$ymax[i] = max(final_data_eoc[final_data_eoc$Fun_ID==annot_svs$Fun_ID[i]&final_data_eoc$PH_ID==annot_svs$PH_ID[i]&final_data_eoc$opp_ID==annot_svs$pair_ID[i],"mean_r"])
 }
-for (i in nrow(annot_svs[annot_svs$key=="r",]):nrow(annot_svs)) {
+for (i in (1+nrow(annot_svs[annot_svs$key=="r",])):nrow(annot_svs)) {
   annot_svs$ymax[i] = max(final_data_eoc[final_data_eoc$Fun_ID==annot_svs$Fun_ID[i]&final_data_eoc$PH_ID==annot_svs$PH_ID[i]&final_data_eoc$opp_ID==annot_svs$pair_ID[i],"mean_K"])
 }
-annot_svs$y = ifelse(abs(annot_svs$ymax)<0.12 | annot_svs$key=="K"&abs(annot_svs$ymax)<0.25, (abs(annot_svs$ymax*0.6)) + annot_svs$ymax, (abs(annot_svs$ymax*0.2)) + annot_svs$ymax)
-annot_svs$y = ifelse(abs(annot_svs$y)<0.03,annot_svs$y + 0.05,annot_svs$y)
-annot_svs$y = ifelse(annot_svs$key=="K"& abs(annot_svs$y)<0.1,annot_svs$y + 0.2,annot_svs$y)
+annot_svs$y = ifelse(annot_svs$key=="r", annot_svs$ymax + 0.1, annot_svs$ymax + 0.2)
 
 # annotation df for significant difference between eoc by pH
 sig_eoc_fin$sig = ifelse(0.01<sig_eoc_fin$`p adj`&sig_eoc_fin$`p adj`<=0.05,"*",
                 ifelse(0.001<sig_eoc_fin$`p adj`&sig_eoc_fin$`p adj`<=0.01,"**","***"))
-sig_eoc_fin$x = c(2.8,3.8,0.8,1.8,3.8,4.8,1.8,3.8,2.8,1.8,3.8,2.8,0.8,1.8,2.8,3.8)
+sig_eoc_fin$x = c(2.8,3.8,0.8,1.8,3.8,4.8,4.8,1.8,1.8,0.8,2.8,3.8,1.8,3.8,0.8,1.8,2.8,0.8,1.8,2.8,3.8)
 sig_eoc_fin$xend = sig_eoc_fin$x + 0.4
 for (i in 1:nrow(sig_eoc_fin[sig_eoc_fin$key=="r",])) {
   sig_eoc_fin$ymax[i] = max(final_data_eoc[final_data_eoc$Fun_ID==sig_eoc_fin$Fun[i]&final_data_eoc$opp_ID==sig_eoc_fin$p1.f[i],"mean_r"])
 }
-for (i in (1+nrow(sig_eoc_fin[sig_eoc_fin$key=="r",])):(nrow(sig_eoc_fin[sig_eoc_fin$key=="K",])+nrow(sig_eoc_fin[sig_eoc_fin$key=="r",]))) {
+for (i in (1+nrow(sig_eoc_fin[sig_eoc_fin$key=="r",])):(nrow(sig_eoc_fin))) {
   sig_eoc_fin$ymax[i] = max(final_data_eoc[final_data_eoc$Fun_ID==sig_eoc_fin$Fun[i]&final_data_eoc$opp_ID==sig_eoc_fin$p1.f[i],"mean_K"])
 }
-sig_eoc_fin$y = ifelse(sig_eoc_fin$key=="r"&sig_eoc_fin$ymax<0.4, sig_eoc_fin$ymax + 0.15, sig_eoc_fin$ymax + 0.3)
-sig_eoc_fin$y[8] = sig_eoc_fin$y[8] + 0.2
+sig_eoc_fin$y = ifelse(sig_eoc_fin$key=="r", sig_eoc_fin$ymax + 0.2, sig_eoc_fin$ymax + 0.4)
 for (i in 1:nrow(sig_eoc_fin)) {
   sig_eoc_fin$xlab[i] = mean(c(sig_eoc_fin$x[i],sig_eoc_fin$xend[i]))
 }
@@ -215,8 +225,9 @@ for(i in 1:length(fungi)){
     theme_cowplot() +
     geom_boxplot(outlier.alpha = 0, aes(fill=PH_ID), color="black") +
     geom_point(position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.9), aes(opp_ID,mean_r,fill = PH_ID,alpha=0.7)) +
-    scale_y_continuous(breaks=c(-1,-0.75,-0.5,-0.25,0,0.25,0.5,0.75,1)) +
-    geom_hline(yintercept=0, size=0.35) +
+    expand_limits(y=c(0.5,1.5)) +
+    scale_y_continuous(breaks=c(0,0.5,1,1.5,2,2.5)) +
+    geom_hline(yintercept=1, size=0.35, linetype=2) +
     geom_vline(xintercept = c(1.5,2.5,3.5,4.5), linetype=2, size=0.25) +
     theme(legend.position = "none", axis.line.x = element_blank(), axis.ticks.x = element_blank(), plot.margin = unit(c(1,1,0.5,1), "cm"), axis.title.x = element_blank(), axis.text.x = element_blank()) +
     ylab("EOC (r)")
@@ -228,26 +239,24 @@ for(i in 1:length(fungi)){
     theme_cowplot() +
     geom_boxplot(outlier.alpha = 0, aes(fill=PH_ID), color="black") +
     geom_point(position = position_jitterdodge(jitter.width = 0.15, dodge.width = 0.9), aes(opp_ID,mean_K,fill = PH_ID,alpha=0.7)) +
-    scale_y_continuous(breaks=c(-1,-0.75,-0.5,-0.25,0,0.25,0.5,0.75,1,1.25,1.5)) +
-    geom_hline(yintercept=0, size=0.35) +
+    scale_y_continuous(breaks=c(0,0.5,1,1.5,2,2.5,3,3.5,4)) +
+    geom_hline(yintercept=1, size=0.35, linetype=2) +
     geom_vline(xintercept = c(1.5,2.5,3.5,4.5), linetype=2, size=0.25) +
     theme(legend.position = "none", axis.line.x = element_blank(), axis.ticks.x = element_blank(), plot.margin = unit(c(1,1,0.5,1), "cm"), axis.title.x = element_blank(), axis.text.x = element_blank()) +
     ylab("EOC (K)")
 }
 
-# add annotations for signifcant differences from control
-plotnum = c(1,1,rep(2,4),3,3,3,3,rep(4,7),rep(5,4),6,6,rep(7,5),rep(8,7),rep(9,6),rep(10,8))
+# add annotations for significant differences from control
+plotnum = c(1,1,rep(2,4),rep(3,4),rep(4,7),rep(5,4),6,6,rep(7,6),rep(8,7),rep(9,5),rep(10,8))
 for (i in 1:nrow(annot_svs)) {
-  eocplots[[plotnum[i]]] = eocplots[[plotnum[i]]] + geom_text(data=annot_svs[i,], aes(x,y, label=sig))
+  eocplots[[plotnum[i]]] = eocplots[[plotnum[i]]] + geom_text(data=annot_svs[i,], aes(x,y,label=sig))
 }
 
 # add annotations for significant differences between eoc by pH
-plotnum1 = c(2,2,3,3,3,3,5,6,7,8,8,9,10,10,10,10)
+plotnum1 = c(2,2,3,3,3,3,4,5,6,7,7,7,8,8,9,9,9,10,10,10,10)
 for (i in 1:nrow(sig_eoc_fin)) {
   eocplots[[plotnum1[i]]] = eocplots[[plotnum1[i]]] + geom_segment(data = sig_eoc_fin[i,], aes(x=x,xend=xend,y=y,yend=y),color = "black") + geom_text(data = sig_eoc_fin[i,], aes(xlab, ylab, label = sig))
 }
-# fix y scal eof plot 6
-eocplots[[6]] = eocplots[[6]] + scale_y_continuous(breaks=c(-1,-0.50,0,0.5,1,1.5,2))
 
 # add opponent ID to bottom of plots
 eocplots[[5]] = eocplots[[5]] + scale_x_discrete(labels = labs$nams) + theme(axis.text.x = element_text(face="italic", angle=330, size=10))
@@ -724,16 +733,23 @@ KdistTuk = rbind(Kdist5Tuk, Kdist7Tuk)
 colnames(KdistTuk) = c("Treat_ID","Kdiff","Kp.adj")
 final_data_phylodiff = left_join(final_data_phylodiff, KdistTuk, by = c("Treat_ID"))
 
+# linear models
+mod_dist_r = lm(dist ~ cont_rmean * PH_ID, data = final_data_phylo)
+summary(mod_dist_r)
+
+mod_dist_K = lm(dist ~ cont_Kmean * PH_ID, data = final_data_phylo)
+summary(mod_dist_K)
+
 # linear mixed effect models
 # for r
-mod_EOCr_r = lmer(mean_r ~ cont_rmean + PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylo)
+mod_EOCr_r = lmer(mean_r ~ cont_rmean + PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylodiff)
 summary(mod_EOCr_r)
 class(mod_EOCr_r) = "lmerMod"
 r.squaredGLMM(mod_EOCr_r)
 EOCr_r = as.data.frame(r.squaredGLMM(mod_EOCr_r))
 EOCr_r_R2 = round(EOCr_r$R2c,4)
 
-mod_EOCr_dist = lmer(mean_r ~ dist + PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylo)
+mod_EOCr_dist = lmer(mean_r ~ dist + PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylodiff)
 summary(mod_EOCr_dist)
 class(mod_EOCr_dist) = "lmerMod"
 r.squaredGLMM(mod_EOCr_dist)
@@ -748,14 +764,14 @@ EOCr_rdiff = as.data.frame(r.squaredGLMM(mod_EOCr_rdiff))
 EOCr_r_R2diff = round(EOCr_rdiff$R2c,4)
 
 # for K
-mod_EOCK_K = lmer(mean_K ~ cont_Kmean + PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylo)
+mod_EOCK_K = lmer(mean_K ~ cont_Kmean + PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylodiff)
 summary(mod_EOCK_K)
 class(mod_EOCK_K) = "lmerMod"
 r.squaredGLMM(mod_EOCK_K)
 EOCK_K = as.data.frame(r.squaredGLMM(mod_EOCK_K))
 EOCK_K_R2 = round(EOCK_K$R2c,4)
 
-mod_EOCK_dist = lmer(mean_K ~ dist + PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylo)
+mod_EOCK_dist = lmer(mean_K ~ dist + PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylodiff)
 summary(mod_EOCK_dist)
 class(mod_EOCK_dist) = "lmerMod"
 r.squaredGLMM(mod_EOCK_dist)
@@ -769,7 +785,23 @@ r.squaredGLMM(mod_EOCK_Kdiff)
 EOCK_Kdiff = as.data.frame(r.squaredGLMM(mod_EOCK_Kdiff))
 EOCK_K_R2diff = round(EOCK_Kdiff$R2c,4)
 
+# ANOVAs comparing models
+anova(mod_EOCr_r, mod_EOCr_dist)
+anova(mod_EOCr_rdiff, mod_EOCr_dist)
+anova(mod_EOCK_K, mod_EOCK_dist)
+anova(mod_EOCK_Kdiff, mod_EOCK_dist)
+
 # stargazer tables
+# for linear models
+stargazer(mod_dist_r, mod_dist_K,
+  type = "text",
+  # out = "mod_dist_rK.htm",
+  dep.var.labels = c("Growth Rate (r)", "Colony Size (K)"),
+  covariate.labels = c("Control r", "Control K", "pH 7", "Control r:pH 7", "Control K:pH 7", "Constant"),
+  summary = TRUE,
+  digits = 3
+)
+
 #for r
 stargazer(mod_EOCr_r, mod_EOCr_dist,
   type = "text",
@@ -815,6 +847,31 @@ stargazer(mod_EOCK_Kdiff, mod_EOCK_dist,
   summary = TRUE,
   digits = 3
 )
+
+# graphs for linear models
+pred_dist_r = ggpredict(mod_dist_r, terms = c("cont_rmean", "PH_ID"))
+plot_dist_r = ggplot(pred_dist_r) + 
+  geom_line(aes(x = x, y = predicted, color = group)) +          # slope
+  geom_ribbon(aes(x = x, ymin = predicted - std.error, ymax = predicted + std.error, fill = group), 
+              alpha = 0.2) +  # error band
+  geom_point(data = final_data_phylo,                      # adding the raw data 
+             aes(x = cont_rmean, y = dist, color = PH_ID)) + 
+  labs(x = "control growth rate", y = "dist") + 
+  theme_cowplot() +
+  theme(plot.background = element_rect(fill = "white"))
+# ggsave("plot_dist_r.png")
+
+pred_dist_K = ggpredict(mod_dist_K, terms = c("cont_Kmean", "PH_ID"))
+plot_dist_K = ggplot(pred_dist_K) + 
+  geom_line(aes(x = x, y = predicted, color = group)) +          # slope
+  geom_ribbon(aes(x = x, ymin = predicted - std.error, ymax = predicted + std.error, fill = group), 
+              alpha = 0.2) +  # error band
+  geom_point(data = final_data_phylo,                      # adding the raw data 
+             aes(x = cont_Kmean, y = dist, color = PH_ID)) + 
+  labs(x = "control colony size", y = "dist") + 
+  theme_cowplot() +
+  theme(plot.background = element_rect(fill = "white"))
+# ggsave("plot_dist_K.png")
 
 # graphing the linear mixed effect models
 # for r
@@ -891,10 +948,13 @@ plot_EOCK_Kdiff = ggplot(pred_EOCK_Kdiff) +
   theme(plot.background = element_rect(fill = "white"))
 # ggsave("plot_EOCK_Kdiff.png")
 
+plot_dist_r
 plot_EOCr_r
 plot_EOCr_rdiff
 plot_EOCr_dist
+plot_dist_K
 plot_EOCK_K
 plot_EOCK_Kdiff
 plot_EOCK_dist
+
 ```
