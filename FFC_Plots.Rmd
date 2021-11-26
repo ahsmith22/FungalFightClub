@@ -904,26 +904,26 @@ plot_EOCr_r = ggplot(pred_EOCr_r) +
   theme(plot.background = element_rect(fill = "white"))
 # ggsave("plot_EOCr_r.png")
 
-pred_EOCr_dist = ggpredict(mod_EOCr_dist, terms = c("dist", "PH_ID"))
+pred_EOCr_dist = ggpredict(mod_EOCr_dist, terms = c("dist", "PH_ID"), back.transform = FALSE)
 plot_EOCr_dist = ggplot(pred_EOCr_dist) + 
   geom_line(aes(x = x, y = predicted, color = group)) +          # slope
   geom_ribbon(aes(x = x, ymin = predicted - std.error, ymax = predicted + std.error, fill = group), 
               alpha = 0.2) +  # error band
   geom_point(data = final_data_phylo,                      # adding the raw data 
-              aes(x = dist, y = mean_r, color = PH_ID)) + 
-  labs(x = "dist", y = "EoC_r") + 
+              aes(x = dist, y = log(mean_r), color = PH_ID)) + 
+  labs(x = "dist", y = "log(EoC_r)") + 
   theme_cowplot() +
   theme(plot.background = element_rect(fill = "white"))
 # ggsave("plot_EOCr_dist.png")
 
-pred_EOCr_rdiff = ggpredict(mod_EOCr_rdiff, terms = c("rdiff", "PH_ID"))
+pred_EOCr_rdiff = ggpredict(mod_EOCr_rdiff, terms = c("rdiff", "PH_ID"), back.transform = FALSE)
 plot_EOCr_rdiff = ggplot(pred_EOCr_rdiff) + 
   geom_line(aes(x = x, y = predicted, color = group)) +          # slope
   geom_ribbon(aes(x = x, ymin = predicted - std.error, ymax = predicted + std.error, fill = group), 
               alpha = 0.2) +  # error band
   geom_point(data = final_data_phylodiff,                      # adding the raw data 
-             aes(x = rdiff, y = mean_r, color = PH_ID)) + 
-  labs(x = "growth rate dist", y = "EoC_r") + 
+             aes(x = rdiff, y = log(mean_r), color = PH_ID)) + 
+  labs(x = "growth rate dist", y = "log(EoC_r)") + 
   theme_cowplot() +
   theme(plot.background = element_rect(fill = "white"))
 # ggsave("plot_EOCr_rdiff.png")
