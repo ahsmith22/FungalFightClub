@@ -225,19 +225,3 @@ finaldata$opp <- ifelse(substr(finaldata$Plate_ID, 2, 2)=="v", substr(finaldata$
 
 # write_csv(finaldata1, "~/FungalFightClub/finaldata1.csv")
 ```
-
-# Let's graph some results!
-```{r}
-boxplot(r~Sp.Treat,data=finaldata,las=1,col=c(rep('dodgerblue',4),rep('coral4',4)),ylab='Growth Rate',xlab='Species.Treatment')
-boxplot(K~Sp.Treat,data=finaldata,las=1,col=c(rep('dodgerblue',4),rep('coral4',4)),ylab='Max Size',xlab='Species.Treatment')
-par(mar=c(4,4,1,1),mfrow=c(3,2))
-for(i in 1:length(levels(finaldata$Fun))){
-  subdat <- finaldata[finaldata$Fun==levels(finaldata$Fun)[i],]
-  boxplot(r~Treat,data=subdat,las=1,ylim=c(min(finaldata$r,na.rm = T),max(finaldata$r, na.rm=T)),col=c('cornsilk2','cadetblue3'),names=)
-}
-par(mar=c(4,4,1,1),mfrow=c(3,2))
-for(i in 1:length(levels(finaldata$Fun))){
-  subdat <- finaldata[finaldata$Fun==levels(finaldata$Fun)[i],]
-  boxplot(K~Treat,data=subdat,las=1,ylim=c(min(finaldata$K,na.rm = T),max(finaldata$K, na.rm=T)),col=c('cornsilk2','cadetblue3'))
-}
-```

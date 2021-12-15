@@ -22,8 +22,8 @@ library(stargazer)
 library(ggeffects)
 
 # read in data
-final_data_sin = read_csv("~/FungalFightClub/finaldata1.csv")
-final_data_sin = final_data_sin[final_data_sin$cont_ID=="s",]
+final_data = read_csv("~/FungalFightClub/finaldata1.csv")
+final_data_sin = final_data[final_data$cont_ID=="s",]
 final_data_eoc = read_csv("~/FungalFightClub/final_data_eoc.csv")
 final_data_eoc$PH_ID = as.character(final_data_eoc$PH_ID) # to fix code
 final_data_eoc$Plug_ID = substr(final_data_eoc$Plug_ID,1,4) # to fix code
@@ -140,6 +140,43 @@ svsplot_K = ggplot(final_data_svs[final_data_svs$key=="K",], aes(Fun_ID, value))
 svsplot_r
 svsplot_K
 ```
+
+```{r kite plot}
+col00 <- "#FAE093"
+colL0 <- "#CABEE9"
+col0B <- "#D04E59"
+colLB <- "#7C7189"
+colset <- c('#D04E59','#FAE093','#7C7189','#CABEE9')
+
+final_data_cont = final_data[final_data$cont_ID != 0,]
+final_cont_sum = summarySE(data=final_data_cont, "r", groupvars = c("Fun_ID", "cont_ID", "PH_ID"))
+names(final_cont_sum)[which(names(final_cont_sum)=="r")] = "mean"
+
+xcenter = c(5,10,15,20,25)
+xcoords.L = c(4,9,14,19,24)
+xcoords.R = c(6,11,16,21,26)
+xcoords = sort(c(xcoords.L,xcoords.R))
+
+plot(xcoords,final_cont_sum[final_cont_sum$PH_ID==7,]$mean,xlab='Species',ylab='Growth Rate (cm^2 per day)',las=1,ylim=c(min(final_cont_sum$mean-final_cont_sum$se)*1.05,max(final_cont_sum$mean+final_cont_sum$se)*1.25),type='n',xaxt='n')
+abline(h=0,lty=2)
+
+arrows(xcoords.R,final_cont_sum[final_cont_sum$PH_ID==7&final_cont_sum$cont_ID=="v",]$mean,xcoords.L,final_cont_sum[final_cont_sum$PH_ID==7&final_cont_sum$cont_ID=="s",]$mean,lwd=2,code=0,col='gray70')
+arrows(xcoords.R,final_cont_sum[final_cont_sum$PH_ID==5&final_cont_sum$cont_ID=="v",]$mean,xcoords.L,final_cont_sum[final_cont_sum$PH_ID==5&final_cont_sum$cont_ID=="s",]$mean,lwd=2,code=0,col='gray70')
+arrows(xcoords.R,final_cont_sum[final_cont_sum$PH_ID==5&final_cont_sum$cont_ID=="v",]$mean,xcoords.R,final_cont_sum[final_cont_sum$PH_ID==7&final_cont_sum$cont_ID=="v",]$mean,lwd=2,code=0,col='gray70')
+arrows(xcoords.L,final_cont_sum[final_cont_sum$PH_ID==5&final_cont_sum$cont_ID=="s",]$mean,xcoords.L,final_cont_sum[final_cont_sum$PH_ID==7&final_cont_sum$cont_ID=="s",]$mean,lwd=2,code=0,col='gray70')
+arrows(xcoords.R,final_cont_sum[final_cont_sum$PH_ID==5&final_cont_sum$cont_ID=="v",]$mean,xcoords.L,final_cont_sum[final_cont_sum$PH_ID==7&final_cont_sum$cont_ID=="s",]$mean,lwd=2,code=0,col='gray70')
+
+arrows(xcoords,final_cont_sum[final_cont_sum$PH_ID==7,]$mean+final_cont_sum[final_cont_sum$PH_ID==7,]$sd,xcoords,final_cont_sum[final_cont_sum$PH_ID==7,]$mean-final_cont_sum[final_cont_sum$PH_ID==7,]$sd,code=3,angle=90,length=0.08)
+arrows(xcoords,final_cont_sum[final_cont_sum$PH_ID==5,]$mean+final_cont_sum[final_cont_sum$PH_ID==5,]$sd,xcoords,final_cont_sum[final_cont_sum$PH_ID==5,]$mean-final_cont_sum[final_cont_sum$PH_ID==5,]$sd,code=3,angle=90,length=0.08)
+
+points(xcoords,final_cont_sum[final_cont_sum$PH_ID==7,]$mean,cex=1.5,pch=21,bg=c(colL0,colLB))
+points(xcoords,final_cont_sum[final_cont_sum$PH_ID==5,]$mean,cex=1.5,pch=21,bg=c(col00,col0B))
+
+axis(1,at=xcenter,labels=unique(sort(final_cont_sum$Fun_ID)))
+legend(3.5,0.35,legend=c('Single Control, pH 5 ','SvS Control, pH 5'),horiz=T,pch=21,pt.cex=1.5,pt.bg=colset[2:1],cex=1,bty='n')
+legend(3.5,0.37,legend=c('Single Control, pH 7 ','SvS Control, pH 7'), horiz=T,pch=21,pt.cex=1.5,pt.bg=colset[4:3],cex=1,bty='n')
+```
+
 ```{r eoc gen plot}
 # configure stat labels
 Tuk_geoc_fin = Tuk_geoc_fin[,c(6,5,8)]
@@ -312,22 +349,48 @@ for (x in 1:nrow(contsinfin5)) {
   contsinfin5$width_r[x] = (final_data_sin5[final_data_sin5$Fun_ID==contsinfin5$Fun[x],"mean_r"])/(final_data_sin5[final_data_sin5$Fun_ID==contsinfin5$opp[x],"mean_r"])
   contsinfin5$width_K[x] = (final_data_sin5[final_data_sin5$Fun_ID==contsinfin5$Fun[x],"mean_K"])/(final_data_sin5[final_data_sin5$Fun_ID==contsinfin5$opp[x],"mean_K"])
 }
+value_cs5r = rep(1,5)
+value_cs5K = rep(1,5)
+for (x in 1:5) {
+  value_cs5r[x] = sum(unlist(contsinfin5$width_r[contsinfin5$Fun==fungi[x]]))
+  value_cs5K[x] = sum(unlist(contsinfin5$width_K[contsinfin5$Fun==fungi[x]]))
+}
+
 for (x in 1:nrow(contsinfin7)) {
   contsinfin7$width_r[x] = (final_data_sin7[final_data_sin7$Fun_ID==contsinfin7$Fun[x],"mean_r"])/(final_data_sin7[final_data_sin7$Fun_ID==contsinfin7$opp[x],"mean_r"])
   contsinfin7$width_K[x] = (final_data_sin7[final_data_sin7$Fun_ID==contsinfin7$Fun[x],"mean_K"])/(final_data_sin7[final_data_sin7$Fun_ID==contsinfin7$opp[x],"mean_K"])
+}
+value_cs7r = rep(1,5)
+value_cs7K = rep(1,5)
+for (x in 1:5) {
+  value_cs7r[x] = sum(unlist(contsinfin7$width_r[contsinfin7$Fun==fungi[x]]))
+  value_cs7K[x] = sum(unlist(contsinfin7$width_K[contsinfin7$Fun==fungi[x]]))
 }
 
 for (x in 1:nrow(contpairfin5)) {
   contpairfin5$width_r[x] = (final_data_svs5[final_data_svs5$Fun_ID==contpairfin5$Fun[x],"mean_r"])/(final_data_svs5[final_data_svs5$Fun_ID==contpairfin5$opp[x],"mean_r"])
   contpairfin5$width_K[x] = (final_data_svs5[final_data_svs5$Fun_ID==contpairfin5$Fun[x],"mean_K"])/(final_data_svs5[final_data_svs5$Fun_ID==contpairfin5$opp[x],"mean_K"])
 }
+value_cp5r = rep(1,5)
+value_cp5K = rep(1,5)
+for (x in 1:5) {
+  value_cp5r[x] = sum(unlist(contpairfin5$width_r[contpairfin5$Fun==fungi[x]]))
+  value_cp5K[x] = sum(unlist(contpairfin5$width_K[contpairfin5$Fun==fungi[x]]))
+}
+
 for (x in 1:nrow(contpairfin7)) {
   contpairfin7$width_r[x] = (final_data_svs7[final_data_svs7$Fun_ID==contpairfin7$Fun[x],"mean_r"])/(final_data_svs7[final_data_svs7$Fun_ID==contpairfin7$opp[x],"mean_r"])
   contpairfin7$width_K[x] = (final_data_svs7[final_data_svs7$Fun_ID==contpairfin7$Fun[x],"mean_K"])/(final_data_svs7[final_data_svs7$Fun_ID==contpairfin7$opp[x],"mean_K"])
 }
+value_cp7r = rep(1,5)
+value_cp7K = rep(1,5)
+for (x in 1:5) {
+  value_cp7r[x] = sum(unlist(contpairfin7$width_r[contpairfin7$Fun==fungi[x]]))
+  value_cp7K[x] = sum(unlist(contpairfin7$width_K[contpairfin7$Fun==fungi[x]]))
+}
 
 # network of sin controls pH 5 for r
-nodes = data.frame(id = 1:5, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
+nodes = data.frame(id = 1:5, value = value_cs5r, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
 edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5), 
                    to = c(2,3,4,5,1,3,4,5,1,2,4,5,1,2,3,5,1,2,3,4), 
                    width = unlist(contsinfin5$width_r),
@@ -345,8 +408,8 @@ sin5r = visNetwork(nodes, edges, width = "100%", height = 500) %>%
   visLayout(randomSeed = 22)
 # sin5r
 
-# network of svs controls pH 7 for r
-nodes = data.frame(id = 1:5, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
+# network of sin controls pH 7 for r
+nodes = data.frame(id = 1:5, value = value_cs7r, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
 edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5), 
                    to = c(2,3,4,5,1,3,4,5,1,2,4,5,1,2,3,5,1,2,3,4), 
                    width = unlist(contsinfin7$width_r),
@@ -364,8 +427,8 @@ sin7r = visNetwork(nodes, edges, width = "100%", height = 500) %>%
   visLayout(randomSeed = 22)
 # sin7r
 
-# network of svs controls pH 5 for K
-nodes = data.frame(id = 1:5, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
+# network of sin controls pH 5 for K
+nodes = data.frame(id = 1:5, value = value_cs5K, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
 edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5), 
                    to = c(2,3,4,5,1,3,4,5,1,2,4,5,1,2,3,5,1,2,3,4), 
                    width = unlist(contsinfin5$width_K),
@@ -383,8 +446,8 @@ sin5K = visNetwork(nodes, edges, width = "100%", height = 500) %>%
   visLayout(randomSeed = 22)
 # sin5K
 
-# network of svs controls pH 7 for K
-nodes = data.frame(id = 1:5, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
+# network of sin controls pH 7 for K
+nodes = data.frame(id = 1:5, value = value_cs7K, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
 edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5), 
                    to = c(2,3,4,5,1,3,4,5,1,2,4,5,1,2,3,5,1,2,3,4), 
                    width = unlist(contsinfin7$width_K),
@@ -403,7 +466,7 @@ sin7K = visNetwork(nodes, edges, width = "100%", height = 500) %>%
 # sin7K
 
 # network of svs controls pH 5 for r
-nodes = data.frame(id = 1:5, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
+nodes = data.frame(id = 1:5, value = value_cp5r, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
 edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5), 
                    to = c(2,3,4,5,1,3,4,5,1,2,4,5,1,2,3,5,1,2,3,4), 
                    width = unlist(contpairfin5$width_r),
@@ -422,7 +485,7 @@ cont5r = visNetwork(nodes, edges, width = "100%", height = 500) %>%
 # cont5r
 
 # network of svs controls pH 7 for r
-nodes = data.frame(id = 1:5, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
+nodes = data.frame(id = 1:5, value = value_cp7r, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
 edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5), 
                    to = c(2,3,4,5,1,3,4,5,1,2,4,5,1,2,3,5,1,2,3,4), 
                    width = unlist(contpairfin7$width_r),
@@ -441,7 +504,7 @@ cont7r = visNetwork(nodes, edges, width = "100%", height = 500) %>%
 # cont7r
 
 # network of svs controls pH 5 for K
-nodes = data.frame(id = 1:5, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
+nodes = data.frame(id = 1:5, value = value_cp5K, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
 edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5), 
                    to = c(2,3,4,5,1,3,4,5,1,2,4,5,1,2,3,5,1,2,3,4), 
                    width = unlist(contpairfin5$width_K),
@@ -460,7 +523,7 @@ cont5K = visNetwork(nodes, edges, width = "100%", height = 500) %>%
 # cont5K
 
 # network of svs controls pH 7 for K
-nodes = data.frame(id = 1:5, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
+nodes = data.frame(id = 1:5, value = value_cp7K, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
 edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5), 
                    to = c(2,3,4,5,1,3,4,5,1,2,4,5,1,2,3,5,1,2,3,4), 
                    width = unlist(contpairfin7$width_K),
@@ -490,12 +553,18 @@ eocnetwinr$Freq = eocnetwinr$Freq/2
 eocnetwinK$Freq = eocnetwinK$Freq/2
 eocnetwinr$PH = substr(eocnetwinr$Var1,4,4)
 eocnetwinK$PH = substr(eocnetwinK$Var1,4,4)
+eocnetwinr$Fun = toupper(substr(eocnetwinr$Var1,1,1))
+eocnetwinK$Fun = toupper(substr(eocnetwinK$Var1,1,1))
 
 
 # eoc 5 r
 eoc5rfin = eocnetwinr[eocnetwinr$PH==5,]
+value_e5r = rep(1,5)
+for (x in 1:5) {
+  value_e5r[x] = sum(unlist(eoc5rfin$Freq[eoc5rfin$Fun==fungi[x]]))
+}
 
-nodes = data.frame(id = 1:5, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
+nodes = data.frame(id = 1:5, value = value_e5r, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
 edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5), 
                    to = c(2,3,4,5,1,3,4,5,1,2,4,5,1,2,3,5,1,2,3,4), 
                    width= c(0,4,6,10,10,8,5,8,6,0,10,6,4,0,0,2,0,1,4,8),
@@ -515,8 +584,12 @@ eoc5r = visNetwork(nodes, edges, width = "100%", height = 500) %>%
 
 # eoc 7 r
 eoc7rfin = eocnetwinr[eocnetwinr$PH==7,]
+value_e7r = rep(1,5)
+for (x in 1:5) {
+  value_e7r[x] = sum(unlist(eoc7rfin$Freq[eoc7rfin$Fun==fungi[x]]))
+}
 
-nodes = data.frame(id = 1:5, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
+nodes = data.frame(id = 1:5, value = value_e7r, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
 edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5), 
                    to = c(2,3,4,5,1,3,4,5,1,2,4,5,1,2,3,5,1,2,3,4), 
                    width= c(5,6,9,10,4,9,9,10,0,0,1,1,0,0,7,8,0,0,9,2),
@@ -536,8 +609,12 @@ eoc7r = visNetwork(nodes, edges, width = "100%", height = 500) %>%
 
 # eoc 5 K
 eoc5Kfin = eocnetwinK[eocnetwinK$PH==5,]
+value_e5K = rep(1,5)
+for (x in 1:5) {
+  value_e5K[x] = sum(unlist(eoc5Kfin$Freq[eoc5Kfin$Fun==fungi[x]]))
+}
 
-nodes = data.frame(id = 1:5, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
+nodes = data.frame(id = 1:5, value = value_e5K, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
 edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5), 
                    to = c(2,3,4,5,1,3,4,5,1,2,4,5,1,2,3,5,1,2,3,4), 
                    width= c(7,1,4,9,3,7,4,0,9,1,10,3,6,1,0,2,1,9,7,8),
@@ -557,8 +634,12 @@ eoc5K = visNetwork(nodes, edges, width = "100%", height = 500) %>%
 
 # eoc 7 K
 eoc7Kfin = eocnetwinK[eocnetwinK$PH==7,]
+value_e7K = rep(1,5)
+for (x in 1:5) {
+  value_e7K[x] = sum(unlist(eoc7Kfin$Freq[eoc7Kfin$Fun==fungi[x]]))
+}
 
-nodes = data.frame(id = 1:5, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
+nodes = data.frame(id = 1:5, value = value_e7K, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
 edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5), 
                    to = c(2,3,4,5,1,3,4,5,1,2,4,5,1,2,3,5,1,2,3,4), 
                    width= c(9,0,1,10,0,0,0,0,6,9,8,10,8,9,0,0,0,10,0,10),
@@ -591,8 +672,14 @@ rt_netval_5 = net_rt[net_rt$PH_ID==5,] %>%
   dplyr::summarise(IOA = sum(RT))
 rt_netval_5 = left_join(rt_netval_5, ffc_n_pair5[,c(2,4)])
 rt_netval_5$width = rt_netval_5$IOA/rt_netval_5$nfun
+rt_netval_5$Fun = toupper(substr(rt_netval_5$Fun_ID,1,1))
 
-nodes = data.frame(id = 1:5, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
+value_rt5 = rep(1,5)
+for (x in 1:5) {
+  value_rt5[x] = sum(unlist(rt_netval_5$width[rt_netval_5$Fun==fungi[x]]))
+}
+
+nodes = data.frame(id = 1:5, value = value_rt5, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
 edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5), 
                    to = c(2,3,4,5,1,3,4,5,1,2,4,5,1,2,3,5,1,2,3,4), 
                    width= c(1.2,1,0.8,2.6,0,0,0,0,1,4.5,2,1.9,1,3.8,2,1,0.2,3,1,0.8),
@@ -616,8 +703,14 @@ rt_netval_7 = net_rt[net_rt$PH_ID==7,] %>%
   dplyr::summarise(IOA = sum(RT))
 rt_netval_7 = left_join(rt_netval_7, ffc_n_pair7[,c(2,4)])
 rt_netval_7$width = rt_netval_7$IOA/rt_netval_7$nfun
+rt_netval_7$Fun = toupper(substr(rt_netval_7$Fun_ID,1,1))
 
-nodes = data.frame(id = 1:5, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
+value_rt7 = rep(1,5)
+for (x in 1:5) {
+  value_rt7[x] = sum(unlist(rt_netval_7$width[rt_netval_7$Fun==fungi[x]]))
+}
+
+nodes = data.frame(id = 1:5, value = value_rt7, label = c("A","C","H","L","P"), group = c("A","C","H","L","P"), font.size = c(20,20,20,20,20))
 edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5), 
                    to = c(2,3,4,5,1,3,4,5,1,2,4,5,1,2,3,5,1,2,3,4), 
                    width= c(1.3,1.7,0.1,2.2,0,0,0,1,1.7,3.3,1.3,1,2.1,2,1.3,1,0.4,3,1,1),
