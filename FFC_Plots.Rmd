@@ -34,6 +34,8 @@ sig_svs_fin = read_csv("~/FungalFightClub/sig_svs_fin.csv")
 sig_eoc_fin = read_csv("~/FungalFightClub/sig_eoc_fin.csv")
 net_rt = read_csv("~/FungalFightClub/FFC Treatments - Reaction Types.csv")
 FFC_nex = read.nexus("~/FungalFightClub/infile.nex.con.tre")
+FFC_nexbay = read.nexus("~/FungalFightClub/mrBayesPost.nex")
+FFC_nexrax = read.nexus("~/FungalFightClub/RAxML_Tree.nex")
 ffc_n_pair = read_csv("~/FungalFightClub/ffc_n_pair.csv")
 
 # constants
@@ -748,12 +750,15 @@ visExport(rt7, type = "png")
 #Phylogeny Plots
 ```{r phylo}
 # Phylogeny used for distance calculations
-FFC_nex$tip.label = c("Amanita muscaria","Cenococcum geophilum","Paxillus involutus","Hebeloma cylindrosporum","Laccaria bicolor")
+FFC_nexbay$tip.label = c("Laccaria bicolor","Hebeloma cylindrosporum","Amanita muscaria","Paxillus involutus","Cenococcum geophilum")
+FFC_nexbay$node.label = c("",""," 1"," 1")
 # png("phyloplot.png", width = 1500, height = 1000, res = 200)
-plot.phylo(FFC_nex)
+plot.phylo(FFC_nexbay, show.node.label = TRUE)
 axisPhylo()
-dist = data.frame(pair_ID = c("CA","CH","CL","CP","HA","HP","LA","LH","LP","PA"), 
-                  dist = c(1.008005,0.8745145,0.9270461,0.7354254,0.6383418,0.6250077,0.6908735,0.433387,0.6775393,0.7584986)) # phylogenetic distances for each pairing
+
+# phylogenetic distances for each pairing
+distbay = data.frame(pair_ID = c("CA","CH","CL","CP","HA","HP","LA","LH","LP","PA"), 
+                  dist = c(0.6632,0.69,0.649,0.464,0.434,0.498,0.393,0.205,0.457,0.471)) 
 
 # Prepare data
 final_data_phylo = final_data_eoc[final_data_eoc$cont_ID==0,]
@@ -772,13 +777,21 @@ final_data_phylo$PH_ID = substr(final_data_phylo$Plug_ID,4,4)
 final_data_phylo$Treat_ID = substr(final_data_phylo$Plug_ID,2,4)
 final_data_phylo$pair_ID = substr(final_data_phylo$Plug_ID,2,3)
 final_data_phylo$Fun_ID = toupper(substr(final_data_phylo$Plug_ID,1,1))
-final_data_phylo = left_join(final_data_phylo, dist)
-final_data_phylo = left_join(final_data_phylo, summ_r, by = c("Fun_ID", "PH_ID"))
-final_data_phylo = left_join(final_data_phylo, summ_K, by = c("Fun_ID", "PH_ID"))
-colnames(final_data_phylo)[3] = c("r")
-colnames(final_data_phylo)[4] = c("K")
-colnames(final_data_phylo)[12] = c("cont_rmean")
-colnames(final_data_phylo)[13] = c("cont_Kmean")
+# final_data_phylo1 = left_join(final_data_phylo, dist)
+# final_data_phylo1 = left_join(final_data_phylo1, summ_r, by = c("Fun_ID", "PH_ID"))
+# final_data_phylo1 = left_join(final_data_phylo1, summ_K, by = c("Fun_ID", "PH_ID"))
+# colnames(final_data_phylo1)[3] = c("r")
+# colnames(final_data_phylo1)[4] = c("K")
+# colnames(final_data_phylo1)[12] = c("cont_rmean")
+# colnames(final_data_phylo1)[13] = c("cont_Kmean")
+
+final_data_phylobay = left_join(final_data_phylo, distbay)
+final_data_phylobay = left_join(final_data_phylobay, summ_r, by = c("Fun_ID", "PH_ID"))
+final_data_phylobay = left_join(final_data_phylobay, summ_K, by = c("Fun_ID", "PH_ID"))
+colnames(final_data_phylobay)[3] = c("r")
+colnames(final_data_phylobay)[4] = c("K")
+colnames(final_data_phylobay)[12] = c("cont_rmean")
+colnames(final_data_phylobay)[13] = c("cont_Kmean")
 
 # calculate rdist
 final_data_rdist = final_data_eoc[final_data_eoc$cont_ID=="v",]
@@ -801,7 +814,7 @@ rdist7Tuk = rdist7Tuk[c(5,1,4)]
 rdistTuk = rbind(rdist5Tuk, rdist7Tuk)
 colnames(rdistTuk) = c("Treat_ID","rdiff","rp.adj")
 
-final_data_phylodiff = final_data_phylo
+final_data_phylodiff = final_data_phylobay
 final_data_phylodiff = left_join(final_data_phylodiff, rdistTuk)
 
 # calculate Kdist
@@ -844,12 +857,19 @@ r.squaredGLMM(mod_EOCr_r)
 EOCr_r = as.data.frame(r.squaredGLMM(mod_EOCr_r))
 EOCr_r_R2 = round(EOCr_r$R2c,4)
 
-mod_EOCr_dist = lmer(log(mean_r) ~ dist * PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylodiff)
-summary(mod_EOCr_dist)
-class(mod_EOCr_dist) = "lmerMod"
-r.squaredGLMM(mod_EOCr_dist)
-EOCr_dist = as.data.frame(r.squaredGLMM(mod_EOCr_dist))
-EOCr_dist_R2 = round(EOCr_dist$R2c,4)
+# mod_EOCr_dist = lmer(log(mean_r) ~ dist * PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylodiff)
+# summary(mod_EOCr_dist)
+# class(mod_EOCr_dist) = "lmerMod"
+# r.squaredGLMM(mod_EOCr_dist)
+# EOCr_dist = as.data.frame(r.squaredGLMM(mod_EOCr_dist))
+# EOCr_dist_R2 = round(EOCr_dist$R2c,4)
+
+mod_EOCr_distbay = lmer(log(mean_r) ~ dist * PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylobay)
+summary(mod_EOCr_distbay)
+class(mod_EOCr_distbay) = "lmerMod"
+r.squaredGLMM(mod_EOCr_distbay)
+EOCr_distbay = as.data.frame(r.squaredGLMM(mod_EOCr_distbay))
+EOCr_distbay_R2 = round(EOCr_distbay$R2c,4)
 
 mod_EOCr_rdiff = lmer(log(mean_r) ~ rdiff * PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylodiff)
 summary(mod_EOCr_rdiff)
@@ -901,7 +921,7 @@ stargazer(mod_dist_r, mod_dist_K,
 )
 
 #for r
-stargazer(mod_EOCr_r, mod_EOCr_dist,
+stargazer(mod_EOCr_r, mod_EOCr_distbay,
   type = "text",
   # out = "mod_EOCr.htm",
   dep.var.labels = c("EOCr"),
@@ -912,9 +932,9 @@ stargazer(mod_EOCr_r, mod_EOCr_dist,
   digits = 3
 )
 
-stargazer(mod_EOCr_rdiff, mod_EOCr_dist,
+stargazer(mod_EOCr_rdiff, mod_EOCr_distbay,
   type = "text",
-  # out = "mod_EOCrdiff_dist.htm",
+  # out = "mod_EOCrdiff_distbay.htm",
   dep.var.labels = c("EOCr"),
   # covariate.labels = c("Growth Rate Distance", "Phylogenetic Distance", "pH 7", "constant"),
   column.labels = c("Trait-based", "Phylogeny-based"),
@@ -924,7 +944,7 @@ stargazer(mod_EOCr_rdiff, mod_EOCr_dist,
   digits = 3
 )
 
-stargazer(mod_EOCr_rdiff, mod_EOCr_dist, mod_EOC_all,
+stargazer(mod_EOCr_rdiff, mod_EOCr_distbay, mod_EOC_all,
   type = "text",
   # out = "mod_EOCrdiff_dist.htm",
   dep.var.labels = c("EOCr"),
@@ -997,17 +1017,29 @@ plot_EOCr_r = ggplot(pred_EOCr_r) +
   theme(plot.background = element_rect(fill = "white"))
 # ggsave("plot_EOCr_r.png")
 
-pred_EOCr_dist = ggpredict(mod_EOCr_dist, terms = c("dist", "PH_ID"), back.transform = FALSE)
-plot_EOCr_dist = ggplot(pred_EOCr_dist) + 
+# pred_EOCr_dist = ggpredict(mod_EOCr_dist, terms = c("dist", "PH_ID"), back.transform = FALSE)
+# plot_EOCr_dist = ggplot(pred_EOCr_dist) + 
+#   geom_line(aes(x = x, y = predicted, color = group)) +          # slope
+#   geom_ribbon(aes(x = x, ymin = predicted - std.error, ymax = predicted + std.error, fill = group), 
+#               alpha = 0.2) +  # error band
+#   geom_point(data = final_data_phylo1,                      # adding the raw data 
+#               aes(x = dist, y = log(mean_r), color = PH_ID)) + 
+#   labs(x = "dist", y = "log(EoC_r)") + 
+#   theme_cowplot() +
+#   theme(plot.background = element_rect(fill = "white"))
+# # ggsave("plot_EOCr_dist.png")
+
+pred_EOCr_distbay = ggpredict(mod_EOCr_distbay, terms = c("dist", "PH_ID"), back.transform = FALSE)
+plot_EOCr_distbay = ggplot(pred_EOCr_distbay) + 
   geom_line(aes(x = x, y = predicted, color = group)) +          # slope
   geom_ribbon(aes(x = x, ymin = predicted - std.error, ymax = predicted + std.error, fill = group), 
               alpha = 0.2) +  # error band
-  geom_point(data = final_data_phylo,                      # adding the raw data 
+  geom_point(data = final_data_phylobay,                      # adding the raw data 
               aes(x = dist, y = log(mean_r), color = PH_ID)) + 
   labs(x = "dist", y = "log(EoC_r)") + 
   theme_cowplot() +
   theme(plot.background = element_rect(fill = "white"))
-# ggsave("plot_EOCr_dist.png")
+# ggsave("plot_EOCr_distbay.png")
 
 pred_EOCr_rdiff = ggpredict(mod_EOCr_rdiff, terms = c("rdiff", "PH_ID"), back.transform = FALSE)
 plot_EOCr_rdiff = ggplot(pred_EOCr_rdiff) + 
@@ -1062,6 +1094,8 @@ plot_dist_r
 plot_EOCr_r
 plot_EOCr_rdiff
 plot_EOCr_dist
+plot_EOCr_distbay
+plot_EOCr_distrax
 plot_dist_K
 plot_EOCK_K
 plot_EOCK_Kdiff
