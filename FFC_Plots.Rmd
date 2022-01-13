@@ -159,14 +159,14 @@ xcoords.L = c(4,9,14,19,24)
 xcoords.R = c(6,11,16,21,26)
 xcoords = sort(c(xcoords.L,xcoords.R))
 
-plot(xcoords,final_cont_sum[final_cont_sum$PH_ID==7,]$mean,xlab='Species',ylab='Growth Rate (cm^2 per day)',las=1,ylim=c(min(final_cont_sum$mean-final_cont_sum$se)*1.05,max(final_cont_sum$mean+final_cont_sum$se)*1.25),type='n',xaxt='n')
-abline(h=0,lty=2)
+png("kiteplot.png",width=9,height=6,units="in",res=200)
+
+plot(xcoords,final_cont_sum[final_cont_sum$PH_ID==7,]$mean,xlab='',ylab=expression('growth rate (cm'^'2'~'/day)'),las=1,ylim=c(min(final_cont_sum$mean-final_cont_sum$se)*1.05,max(final_cont_sum$mean+final_cont_sum$se)*1.25),type='n',xaxt='n',bty="l")
 
 arrows(xcoords.R,final_cont_sum[final_cont_sum$PH_ID==7&final_cont_sum$cont_ID=="v",]$mean,xcoords.L,final_cont_sum[final_cont_sum$PH_ID==7&final_cont_sum$cont_ID=="s",]$mean,lwd=2,code=0,col='gray70')
 arrows(xcoords.R,final_cont_sum[final_cont_sum$PH_ID==5&final_cont_sum$cont_ID=="v",]$mean,xcoords.L,final_cont_sum[final_cont_sum$PH_ID==5&final_cont_sum$cont_ID=="s",]$mean,lwd=2,code=0,col='gray70')
 arrows(xcoords.R,final_cont_sum[final_cont_sum$PH_ID==5&final_cont_sum$cont_ID=="v",]$mean,xcoords.R,final_cont_sum[final_cont_sum$PH_ID==7&final_cont_sum$cont_ID=="v",]$mean,lwd=2,code=0,col='gray70')
 arrows(xcoords.L,final_cont_sum[final_cont_sum$PH_ID==5&final_cont_sum$cont_ID=="s",]$mean,xcoords.L,final_cont_sum[final_cont_sum$PH_ID==7&final_cont_sum$cont_ID=="s",]$mean,lwd=2,code=0,col='gray70')
-arrows(xcoords.R,final_cont_sum[final_cont_sum$PH_ID==5&final_cont_sum$cont_ID=="v",]$mean,xcoords.L,final_cont_sum[final_cont_sum$PH_ID==7&final_cont_sum$cont_ID=="s",]$mean,lwd=2,code=0,col='gray70')
 
 arrows(xcoords,final_cont_sum[final_cont_sum$PH_ID==7,]$mean+final_cont_sum[final_cont_sum$PH_ID==7,]$sd,xcoords,final_cont_sum[final_cont_sum$PH_ID==7,]$mean-final_cont_sum[final_cont_sum$PH_ID==7,]$sd,code=3,angle=90,length=0.08)
 arrows(xcoords,final_cont_sum[final_cont_sum$PH_ID==5,]$mean+final_cont_sum[final_cont_sum$PH_ID==5,]$sd,xcoords,final_cont_sum[final_cont_sum$PH_ID==5,]$mean-final_cont_sum[final_cont_sum$PH_ID==5,]$sd,code=3,angle=90,length=0.08)
@@ -174,9 +174,11 @@ arrows(xcoords,final_cont_sum[final_cont_sum$PH_ID==5,]$mean+final_cont_sum[fina
 points(xcoords,final_cont_sum[final_cont_sum$PH_ID==7,]$mean,cex=1.5,pch=21,bg=c(colL0,colLB))
 points(xcoords,final_cont_sum[final_cont_sum$PH_ID==5,]$mean,cex=1.5,pch=21,bg=c(col00,col0B))
 
-axis(1,at=xcenter,labels=unique(sort(final_cont_sum$Fun_ID)))
+axis(1,at=xcenter,labels=c(expression(italic("A. muscaria")),expression(italic("C. geophilum")),expression(italic("H. cylindrosporum")),expression(italic("L. bicolor")),expression(italic("P. involutus"))))
 legend(3.5,0.35,legend=c('Single Control, pH 5 ','SvS Control, pH 5'),horiz=T,pch=21,pt.cex=1.5,pt.bg=colset[2:1],cex=1,bty='n')
-legend(3.5,0.37,legend=c('Single Control, pH 7 ','SvS Control, pH 7'), horiz=T,pch=21,pt.cex=1.5,pt.bg=colset[4:3],cex=1,bty='n')
+legend(3.5,0.37,legend=c('Single Control, pH 7 ','SvS Control, pH 7'),horiz=T,pch=21,pt.cex=1.5,pt.bg=colset[4:3],cex=1,bty='n')
+
+dev.off()
 ```
 
 ```{r eoc gen plot}
@@ -269,7 +271,7 @@ for(i in 1:length(fungi)){
     geom_hline(yintercept=1, size=0.35, linetype=2) +
     geom_vline(xintercept = c(1.5,2.5,3.5,4.5), linetype=2, size=0.25) +
     theme(legend.position = "none", axis.line.x = element_blank(), axis.ticks.x = element_blank(), plot.margin = unit(c(1,1,0.5,1), "cm"), axis.title.x = element_blank(), axis.text.x = element_blank()) +
-    ylab("EOC (r)")
+    ylab("EoC")
 }
 # create plots of eoc by K
 for(i in 1:length(fungi)){
@@ -282,7 +284,7 @@ for(i in 1:length(fungi)){
     geom_hline(yintercept=1, size=0.35, linetype=2) +
     geom_vline(xintercept = c(1.5,2.5,3.5,4.5), linetype=2, size=0.25) +
     theme(legend.position = "none", axis.line.x = element_blank(), axis.ticks.x = element_blank(), plot.margin = unit(c(1,1,0.5,1), "cm"), axis.title.x = element_blank(), axis.text.x = element_blank()) +
-    ylab("EOC (K)")
+    ylab("EoC (K)")
 }
 
 # add annotations for significant differences from control
@@ -850,12 +852,12 @@ summary(mod_dist_K)
 
 # linear mixed effect models
 # for r
-mod_EOCr_r = lmer(log(mean_r) ~ cont_rmean * PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylodiff)
-summary(mod_EOCr_r)
-class(mod_EOCr_r) = "lmerMod"
-r.squaredGLMM(mod_EOCr_r)
-EOCr_r = as.data.frame(r.squaredGLMM(mod_EOCr_r))
-EOCr_r_R2 = round(EOCr_r$R2c,4)
+# mod_EOCr_r = lmer(log(mean_r) ~ cont_rmean * PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylodiff)
+# summary(mod_EOCr_r)
+# class(mod_EOCr_r) = "lmerMod"
+# r.squaredGLMM(mod_EOCr_r)
+# EOCr_r = as.data.frame(r.squaredGLMM(mod_EOCr_r))
+# EOCr_r_R2 = round(EOCr_r$R2c,4)
 
 # mod_EOCr_dist = lmer(log(mean_r) ~ dist * PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylodiff)
 # summary(mod_EOCr_dist)
@@ -886,12 +888,12 @@ EOC_all = as.data.frame(r.squaredGLMM(mod_EOC_all))
 EOC_all_R2 = round(EOC_all$R2c,4)
 
 # for K
-mod_EOCK_K = lmer(mean_K ~ cont_Kmean * PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylodiff)
-summary(mod_EOCK_K)
-class(mod_EOCK_K) = "lmerMod"
-r.squaredGLMM(mod_EOCK_K)
-EOCK_K = as.data.frame(r.squaredGLMM(mod_EOCK_K))
-EOCK_K_R2 = round(EOCK_K$R2c,4)
+# mod_EOCK_K = lmer(mean_K ~ cont_Kmean * PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylodiff)
+# summary(mod_EOCK_K)
+# class(mod_EOCK_K) = "lmerMod"
+# r.squaredGLMM(mod_EOCK_K)
+# EOCK_K = as.data.frame(r.squaredGLMM(mod_EOCK_K))
+# EOCK_K_R2 = round(EOCK_K$R2c,4)
 
 mod_EOCK_dist = lmer(mean_K ~ dist * PH_ID + (1|Fun_ID) + (1|Plate_ID), data = final_data_phylodiff)
 summary(mod_EOCK_dist)
@@ -921,23 +923,23 @@ stargazer(mod_dist_r, mod_dist_K,
 )
 
 #for r
-stargazer(mod_EOCr_r, mod_EOCr_distbay,
-  type = "text",
-  # out = "mod_EOCr.htm",
-  dep.var.labels = c("EOCr"),
-  covariate.labels = c("Growth Rate", "Phylogenetic Distance", "pH 7", "constant"),
-  column.labels = c("Trait-based", "Phylogeny-based"),
-  add.lines = list(c("Conditional pseudo-R2", EOCr_r_R2, EOCr_dist_R2)),
-  summary = TRUE,
-  digits = 3
-)
+# stargazer(mod_EOCr_r, mod_EOCr_distbay,
+#   type = "text",
+#   # out = "mod_EOCr.htm",
+#   dep.var.labels = c("EOCr"),
+#   covariate.labels = c("Growth Rate", "Phylogenetic Distance", "pH 7", "constant"),
+#   column.labels = c("Trait-based", "Phylogeny-based"),
+#   add.lines = list(c("Conditional pseudo-R2", EOCr_r_R2, EOCr_dist_R2)),
+#   summary = TRUE,
+#   digits = 3
+# )
 
 stargazer(mod_EOCr_rdiff, mod_EOCr_distbay,
   type = "text",
   # out = "mod_EOCrdiff_distbay.htm",
-  dep.var.labels = c("EOCr"),
-  # covariate.labels = c("Growth Rate Distance", "Phylogenetic Distance", "pH 7", "constant"),
-  column.labels = c("Trait-based", "Phylogeny-based"),
+  dep.var.labels = c("EoC"),
+  covariate.labels = c("Growth Rate Distance", "Phylogenetic Distance", "pH 7", "Growth Rate Distance:pH 7", "Phylogenetic Distance:pH 7", "Constant"),
+  column.labels = c("Growth Rate-based", "Phylogenetic-based"),
   add.lines = list(c("Conditional pseudo-R2", EOCr_r_R2diff, EOCr_dist_R2)),
   summary = TRUE,
   star.cutoffs = c(0.05,0.01,0.001),
@@ -956,16 +958,16 @@ stargazer(mod_EOCr_rdiff, mod_EOCr_distbay, mod_EOC_all,
 )
 
 # for K
-stargazer(mod_EOCK_K, mod_EOCK_dist,
-  type = "text",
-  # out = "mod_EOCK.htm",
-  dep.var.labels = c("EOCK"),
-  covariate.labels = c("Colony size", "Phylogenetic Distance", "pH 7", "constant"),
-  column.labels = c("Trait-based", "Phylogeny-based"),
-  add.lines = list(c("Conditional pseudo-R2", EOCK_K_R2, EOCK_dist_R2)),
-  summary = TRUE,
-  digits = 3
-)
+# stargazer(mod_EOCK_K, mod_EOCK_dist,
+#   type = "text",
+#   # out = "mod_EOCK.htm",
+#   dep.var.labels = c("EOCK"),
+#   covariate.labels = c("Colony size", "Phylogenetic Distance", "pH 7", "constant"),
+#   column.labels = c("Trait-based", "Phylogeny-based"),
+#   add.lines = list(c("Conditional pseudo-R2", EOCK_K_R2, EOCK_dist_R2)),
+#   summary = TRUE,
+#   digits = 3
+# )
 
 stargazer(mod_EOCK_Kdiff, mod_EOCK_dist,
   type = "text",
@@ -1005,17 +1007,17 @@ plot_dist_K = ggplot(pred_dist_K) +
 
 # graphing the linear mixed effect models
 # for r
-pred_EOCr_r = ggpredict(mod_EOCr_r, terms = c("cont_rmean", "PH_ID"))
-plot_EOCr_r = ggplot(pred_EOCr_r) + 
-  geom_line(aes(x = x, y = predicted, color = group)) +          # slope
-  geom_ribbon(aes(x = x, ymin = predicted - std.error, ymax = predicted + std.error, fill = group), 
-              alpha = 0.2) +  # error band
-  geom_point(data = final_data_phylo,                      # adding the raw data 
-              aes(x = cont_rmean, y = mean_r, color = PH_ID)) + 
-  labs(x = "control growth rate", y = "EoC_r") + 
-  theme_cowplot() +
-  theme(plot.background = element_rect(fill = "white"))
-# ggsave("plot_EOCr_r.png")
+# pred_EOCr_r = ggpredict(mod_EOCr_r, terms = c("cont_rmean", "PH_ID"))
+# plot_EOCr_r = ggplot(pred_EOCr_r) + 
+#   geom_line(aes(x = x, y = predicted, color = group)) +          # slope
+#   geom_ribbon(aes(x = x, ymin = predicted - std.error, ymax = predicted + std.error, fill = group), 
+#               alpha = 0.2) +  # error band
+#   geom_point(data = final_data_phylo,                      # adding the raw data 
+#               aes(x = cont_rmean, y = mean_r, color = PH_ID)) + 
+#   labs(x = "control growth rate", y = "EoC_r") + 
+#   theme_cowplot() +
+#   theme(plot.background = element_rect(fill = "white"))
+# # ggsave("plot_EOCr_r.png")
 
 # pred_EOCr_dist = ggpredict(mod_EOCr_dist, terms = c("dist", "PH_ID"), back.transform = FALSE)
 # plot_EOCr_dist = ggplot(pred_EOCr_dist) + 
@@ -1036,9 +1038,9 @@ plot_EOCr_distbay = ggplot(pred_EOCr_distbay) +
               alpha = 0.2) +  # error band
   geom_point(data = final_data_phylobay,                      # adding the raw data 
               aes(x = dist, y = log(mean_r), color = PH_ID)) + 
-  labs(x = "dist", y = "log(EoC_r)") + 
+  labs(x = "phylogenetic distance", y = "log(EoC)") + 
   theme_cowplot() +
-  theme(plot.background = element_rect(fill = "white"))
+  theme(plot.background = element_rect(fill = "white"), legend.position = "none")
 # ggsave("plot_EOCr_distbay.png")
 
 pred_EOCr_rdiff = ggpredict(mod_EOCr_rdiff, terms = c("rdiff", "PH_ID"), back.transform = FALSE)
@@ -1048,9 +1050,9 @@ plot_EOCr_rdiff = ggplot(pred_EOCr_rdiff) +
               alpha = 0.2) +  # error band
   geom_point(data = final_data_phylodiff,                      # adding the raw data 
              aes(x = rdiff, y = log(mean_r), color = PH_ID)) + 
-  labs(x = "growth rate dist", y = "log(EoC_r)") + 
+  labs(x = "growth rate difference", y = "log(EoC)") + 
   theme_cowplot() +
-  theme(plot.background = element_rect(fill = "white"))
+  theme(plot.background = element_rect(fill = "white"), legend.position = "none")
 # ggsave("plot_EOCr_rdiff.png")
 
 # for K
@@ -1091,14 +1093,14 @@ plot_EOCK_Kdiff = ggplot(pred_EOCK_Kdiff) +
 # ggsave("plot_EOCK_Kdiff.png")
 
 plot_dist_r
-plot_EOCr_r
+# plot_EOCr_r
 plot_EOCr_rdiff
-plot_EOCr_dist
+# plot_EOCr_dist
 plot_EOCr_distbay
-plot_EOCr_distrax
+# plot_EOCr_distrax
 plot_dist_K
-plot_EOCK_K
+# plot_EOCK_K
 plot_EOCK_Kdiff
-plot_EOCK_dist
+# plot_EOCK_dist
 
 ```
