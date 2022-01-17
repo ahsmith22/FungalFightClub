@@ -47,7 +47,7 @@ value = c("r","K")
 labs = data.frame(main=c("(a) Amanita muscaria","(b) Cenococcum geophilum","(c) Hebeloma cylindrosporum","(d) Laccaria bicolor","(e) Paxillus involutus"), letter=c("(a)","(b)","(c)","(d)","(e)"), nams=c("A. muscaria","C. geophilum","H. cylindrosporum","L. bicolor","P. involutus"), x=c(-0.055,-0.0725,-0.0775,-0.05,-0.055), y=c(1,1,1,1,1))
 
 # color palette
-BlueRidgePkwy = c("#EC8FA3", "#FCBA65", "#FAECCF", "#8D7F99", "#8C9D57", "#163343")
+palette = c("#EC8FA3", "#FCBA65", "#FAECCF", "#8D7F99", "#8C9D57")
 ```
 
 #Sin Plot
@@ -175,7 +175,7 @@ points(xcoords,final_cont_sum[final_cont_sum$PH_ID==7,]$mean,cex=1.5,pch=21,bg=c
 points(xcoords,final_cont_sum[final_cont_sum$PH_ID==5,]$mean,cex=1.5,pch=21,bg=c(col00,col0B))
 
 axis(1,at=xcenter,labels=c(expression(italic("A. muscaria")),expression(italic("C. geophilum")),expression(italic("H. cylindrosporum")),expression(italic("L. bicolor")),expression(italic("P. involutus"))))
-legend(3.5,0.35,legend=c('Single Control, pH 5 ','SvS Control, pH 5'),horiz=T,pch=21,pt.cex=1.5,pt.bg=colset[2:1],cex=1,bty='n')
+legend(3.5,0.35,legend=c('Single Control, pH 5.6 ','SvS Control, pH 5.6'),horiz=T,pch=21,pt.cex=1.5,pt.bg=colset[2:1],cex=1,bty='n')
 legend(3.5,0.37,legend=c('Single Control, pH 7 ','SvS Control, pH 7'),horiz=T,pch=21,pt.cex=1.5,pt.bg=colset[4:3],cex=1,bty='n')
 
 dev.off()
@@ -404,11 +404,11 @@ edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5),
 edges$width = edges$width*3
 
 sin5r = visNetwork(nodes, edges, width = "100%", height = 500) %>%
-  visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
-  visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
-  visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
-  visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
-  visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
+  visGroups(groupname = "A", color = palette[4]) %>% 
+  visGroups(groupname = "C", color = palette[5]) %>% 
+  visGroups(groupname = "H", color = palette[2]) %>% 
+  visGroups(groupname = "L", color = palette[1]) %>% 
+  visGroups(groupname = "P", color = palette[3]) %>%
   visLayout(randomSeed = 22)
 # sin5r
 
@@ -423,11 +423,11 @@ edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5),
 edges$width = edges$width*3
 
 sin7r = visNetwork(nodes, edges, width = "100%", height = 500) %>%
-  visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
-  visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
-  visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
-  visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
-  visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
+  visGroups(groupname = "A", color = palette[4]) %>% 
+  visGroups(groupname = "C", color = palette[5]) %>% 
+  visGroups(groupname = "H", color = palette[2]) %>% 
+  visGroups(groupname = "L", color = palette[1]) %>% 
+  visGroups(groupname = "P", color = palette[3]) %>%
   visLayout(randomSeed = 22)
 # sin7r
 
@@ -442,11 +442,11 @@ edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5),
 edges$width = edges$width*3
 
 sin5K = visNetwork(nodes, edges, width = "100%", height = 500) %>%
-  visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
-  visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
-  visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
-  visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
-  visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
+  visGroups(groupname = "A", color = palette[4]) %>% 
+  visGroups(groupname = "C", color = palette[5]) %>% 
+  visGroups(groupname = "H", color = palette[2]) %>% 
+  visGroups(groupname = "L", color = palette[1]) %>% 
+  visGroups(groupname = "P", color = palette[3]) %>%
   visLayout(randomSeed = 22)
 # sin5K
 
@@ -461,11 +461,11 @@ edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5),
 edges$width = edges$width*3
 
 sin7K = visNetwork(nodes, edges, width = "100%", height = 500) %>%
-  visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
-  visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
-  visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
-  visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
-  visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
+  visGroups(groupname = "A", color = palette[4]) %>% 
+  visGroups(groupname = "C", color = palette[5]) %>% 
+  visGroups(groupname = "H", color = palette[2]) %>% 
+  visGroups(groupname = "L", color = palette[1]) %>% 
+  visGroups(groupname = "P", color = palette[3]) %>%
   visLayout(randomSeed = 22)
 # sin7K
 
@@ -480,11 +480,11 @@ edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5),
 edges$width = edges$width*3
 
 cont5r = visNetwork(nodes, edges, width = "100%", height = 500) %>%
-  visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
-  visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
-  visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
-  visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
-  visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
+  visGroups(groupname = "A", color = palette[4]) %>% 
+  visGroups(groupname = "C", color = palette[5]) %>% 
+  visGroups(groupname = "H", color = palette[2]) %>% 
+  visGroups(groupname = "L", color = palette[1]) %>% 
+  visGroups(groupname = "P", color = palette[3]) %>%
   visLayout(randomSeed = 22)
 # cont5r
 
@@ -499,11 +499,11 @@ edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5),
 edges$width = edges$width*3
 
 cont7r = visNetwork(nodes, edges, width = "100%", height = 500) %>%
-  visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
-  visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
-  visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
-  visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
-  visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
+  visGroups(groupname = "A", color = palette[4]) %>% 
+  visGroups(groupname = "C", color = palette[5]) %>% 
+  visGroups(groupname = "H", color = palette[2]) %>% 
+  visGroups(groupname = "L", color = palette[1]) %>% 
+  visGroups(groupname = "P", color = palette[3]) %>%
   visLayout(randomSeed = 22)
 # cont7r
 
@@ -518,11 +518,11 @@ edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5),
 edges$width = edges$width*3
 
 cont5K = visNetwork(nodes, edges, width = "100%", height = 500) %>%
-  visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
-  visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
-  visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
-  visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
-  visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
+  visGroups(groupname = "A", color = palette[4]) %>% 
+  visGroups(groupname = "C", color = palette[5]) %>% 
+  visGroups(groupname = "H", color = palette[2]) %>% 
+  visGroups(groupname = "L", color = palette[1]) %>% 
+  visGroups(groupname = "P", color = palette[3]) %>%
   visLayout(randomSeed = 22)
 # cont5K
 
@@ -537,11 +537,11 @@ edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5),
 edges$width = edges$width*3
 
 cont7K = visNetwork(nodes, edges, width = "100%", height = 500) %>%
-  visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
-  visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
-  visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
-  visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
-  visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
+  visGroups(groupname = "A", color = palette[4]) %>% 
+  visGroups(groupname = "C", color = palette[5]) %>% 
+  visGroups(groupname = "H", color = palette[2]) %>% 
+  visGroups(groupname = "L", color = palette[1]) %>% 
+  visGroups(groupname = "P", color = palette[3]) %>%
   visLayout(randomSeed = 22)
 # cont7K
 
@@ -578,11 +578,11 @@ edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5),
 edges$width = edges$width/1.5
 
 eoc5r = visNetwork(nodes, edges, width = "100%", height = 500) %>%
-  visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
-  visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
-  visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
-  visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
-  visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
+  visGroups(groupname = "A", color = palette[4]) %>% 
+  visGroups(groupname = "C", color = palette[5]) %>% 
+  visGroups(groupname = "H", color = palette[2]) %>% 
+  visGroups(groupname = "L", color = palette[1]) %>% 
+  visGroups(groupname = "P", color = palette[3]) %>%
   visLayout(randomSeed = 22)
 # eoc5r
 
@@ -603,11 +603,11 @@ edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5),
 edges$width = edges$width/1.5
 
 eoc7r = visNetwork(nodes, edges, width = "100%", height = 500) %>%
-  visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
-  visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
-  visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
-  visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
-  visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
+  visGroups(groupname = "A", color = palette[4]) %>% 
+  visGroups(groupname = "C", color = palette[5]) %>% 
+  visGroups(groupname = "H", color = palette[2]) %>% 
+  visGroups(groupname = "L", color = palette[1]) %>% 
+  visGroups(groupname = "P", color = palette[3]) %>%
   visLayout(randomSeed = 22)
 # eoc7r
 
@@ -628,11 +628,11 @@ edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5),
 edges$width = edges$width/1.5
 
 eoc5K = visNetwork(nodes, edges, width = "100%", height = 500) %>%
-  visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
-  visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
-  visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
-  visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
-  visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
+  visGroups(groupname = "A", color = palette[4]) %>% 
+  visGroups(groupname = "C", color = palette[5]) %>% 
+  visGroups(groupname = "H", color = palette[2]) %>% 
+  visGroups(groupname = "L", color = palette[1]) %>% 
+  visGroups(groupname = "P", color = palette[3]) %>%
   visLayout(randomSeed = 22)
 # eoc5K
 
@@ -653,11 +653,11 @@ edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5),
 edges$width = edges$width/1.5
 
 eoc7K = visNetwork(nodes, edges, width = "100%", height = 500) %>%
-  visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
-  visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
-  visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
-  visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
-  visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
+  visGroups(groupname = "A", color = palette[4]) %>% 
+  visGroups(groupname = "C", color = palette[5]) %>% 
+  visGroups(groupname = "H", color = palette[2]) %>% 
+  visGroups(groupname = "L", color = palette[1]) %>% 
+  visGroups(groupname = "P", color = palette[3]) %>%
   visLayout(randomSeed = 22)
 # eoc7K
 
@@ -693,11 +693,11 @@ edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5),
 edges$width = edges$width*2
 
 rt5 = visNetwork(nodes, edges, width = "100%", height = 500) %>%
-  visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
-  visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
-  visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
-  visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
-  visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
+  visGroups(groupname = "A", color = palette[4]) %>% 
+  visGroups(groupname = "C", color = palette[5]) %>% 
+  visGroups(groupname = "H", color = palette[2]) %>% 
+  visGroups(groupname = "L", color = palette[1]) %>% 
+  visGroups(groupname = "P", color = palette[3]) %>%
   visLayout(randomSeed = 22)
 # rt5
 
@@ -724,11 +724,11 @@ edges = data.frame(from = c(1,1,1,1,2,2,2,2,3,3,3,3,4,4,4,4,5,5,5,5),
 edges$width = edges$width*2
 
 rt7 = visNetwork(nodes, edges, width = "100%", height = 500) %>%
-  visGroups(groupname = "A", color = BlueRidgePkwy[4]) %>% 
-  visGroups(groupname = "C", color = BlueRidgePkwy[5]) %>% 
-  visGroups(groupname = "H", color = BlueRidgePkwy[2]) %>% 
-  visGroups(groupname = "L", color = BlueRidgePkwy[1]) %>% 
-  visGroups(groupname = "P", color = BlueRidgePkwy[3]) %>%
+  visGroups(groupname = "A", color = palette[4]) %>% 
+  visGroups(groupname = "C", color = palette[5]) %>% 
+  visGroups(groupname = "H", color = palette[2]) %>% 
+  visGroups(groupname = "L", color = palette[1]) %>% 
+  visGroups(groupname = "P", color = palette[3]) %>%
   visLayout(randomSeed = 22)
 # rt7
 

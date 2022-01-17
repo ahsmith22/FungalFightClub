@@ -191,8 +191,8 @@ Tuk_final = rbind(sig_eoc_fin, sig_svs_fin)
 # write_csv(sig_eoc_fin, "~/FungalFightClub/sig_eoc_fin.csv")
 
 # create TukeyHSD results tables
-sig_sin_cont = Tuk_sin_fin[,c(6,2:5,8)]
-colnames(sig_sin_cont) = c("Fungi", "Mean Difference", "Lower Bound", "Upper Bound", "Significance", "Growth Measure")
+sig_sin_cont = Tuk_rsin_fin[,c(6,2:5)]
+colnames(sig_sin_cont) = c("Fungi", "Mean Difference", "Lower Bound", "Upper Bound", "Significance")
 Tuk_sincont_table = sig_sin_cont %>% 
   gt() %>% 
   cols_align(
@@ -203,8 +203,8 @@ Tuk_sincont_table = sig_sin_cont %>%
 Tuk_sincont_table
 
 sig_svs_cont = sig_svs_fin[sig_svs_fin$p1.f==sig_svs_fin$p2.f&sig_svs_fin$p2.f==sig_svs_fin$Fun,]
-sig_svs_cont = sig_svs_cont[,c(1,3:6,11)]
-colnames(sig_svs_cont) = c("Fungi", "Mean Difference", "Lower Bound", "Upper Bound", "Significance", "Growth Measure")
+sig_svs_cont = sig_svs_cont[c(1,2),c(1,3:6)]
+colnames(sig_svs_cont) = c("Fungi", "Mean Difference", "Lower Bound", "Upper Bound", "Significance")
 Tuk_svscont_table = sig_svs_cont %>% 
   gt() %>% 
   cols_align(
@@ -214,8 +214,8 @@ Tuk_svscont_table = sig_svs_cont %>%
 # gtsave(Tuk_svscont_table, "Tuk_svscont_table.htm")
 Tuk_svscont_table
 
-sig_gen_eoc = Tuk_geoc_fin[,c(6,2:5,8)]
-colnames(sig_gen_eoc) = c("Fungi", "Mean Difference", "Lower Bound", "Upper Bound", "Significance", "Growth Measure")
+sig_gen_eoc = Tuk_rgeoc_fin[,c(6,2:5)]
+colnames(sig_gen_eoc) = c("Fungi", "Mean Difference", "Lower Bound", "Upper Bound", "Significance")
 Tuk_geoc_table = sig_gen_eoc %>% 
   gt() %>% 
   cols_align(
@@ -225,8 +225,8 @@ Tuk_geoc_table = sig_gen_eoc %>%
 # gtsave(Tuk_geoc_table, "Tuk_geoc_table.htm")
 Tuk_geoc_table
 
-sig_eoc_fin = sig_eoc_fin[,c(1,7,3:6,11)]
-colnames(sig_eoc_fin) = c("Fungi", "Opponent", "Mean Difference", "Lower Bound", "Upper Bound", "Significance", "Growth Measure")
+sig_eoc_fin = sig_reoc_fin[,c(1,7,3:6)]
+colnames(sig_eoc_fin) = c("Fungi", "Opponent", "Mean Difference", "Lower Bound", "Upper Bound", "Significance")
 Tuk_eocphdiff_table = sig_eoc_fin %>% 
   gt() %>% 
   cols_align(
@@ -238,8 +238,8 @@ Tuk_eocphdiff_table
 
 sig_svs_fin = sig_svs_fin[sig_svs_fin$p1.pH==sig_svs_fin$p2.pH,]
 sig_svs_fin$p1.f = ifelse(sig_svs_fin$Fun==sig_svs_fin$p1.f, sig_svs_fin$p2.f, sig_svs_fin$p1.f)
-sig_svs_fin = sig_svs_fin[,c(1,7,8,3:6,11)]
-colnames(sig_svs_fin) = c("Fungi", "Opponent", "pH", "Mean Difference", "Lower Bound", "Upper Bound", "Significance", "Growth Measure")
+sig_svs_fin = sig_svs_fin[c(1:21),c(1,7,8,3:6)]
+colnames(sig_svs_fin) = c("Fungi", "Opponent", "pH", "Mean Difference", "Lower Bound", "Upper Bound", "Significance")
 Tuk_svsdiff_table = sig_svs_fin %>% 
   gt() %>% 
   cols_align(
