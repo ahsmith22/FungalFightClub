@@ -11,6 +11,7 @@ knitr::opts_chunk$set(echo = TRUE)
 library(tidyverse)
 library(vegan)
 library(gt)
+library(stargazer)
 
 # read in data
 final_data = read_csv("~/FungalFightClub/finaldata1.csv")
@@ -47,7 +48,7 @@ summary.aov(aov(value~PH_ID, data = final_data_svs[final_data_svs$key=="K",]))
 stargazer(lm(mean_r~Fun_ID*PH_ID*opp_ID, data = final_data_eoc), 
           # out = "lmeocr.htm",
           type = "text",
-          dep.var.labels = c("Growth Rate (r)"),
+          dep.var.labels = c("Growth Rate"),
           summary = TRUE,
           digits = 3
 )
@@ -55,7 +56,7 @@ stargazer(lm(mean_r~Fun_ID*PH_ID*opp_ID, data = final_data_eoc),
 stargazer(lm(mean_K~Fun_ID*PH_ID*opp_ID, data = final_data_eoc), 
           # out = "lmeocK.htm",
           type = "text",
-          dep.var.labels = c("Colony Size (K)"),
+          dep.var.labels = c("Colony Size"),
           summary = TRUE,
           digits = 3
 )
