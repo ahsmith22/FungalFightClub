@@ -1050,7 +1050,7 @@ plot_EOCr_rdiff = ggplot(pred_EOCr_rdiff) +
               alpha = 0.2) +  # error band
   geom_point(data = final_data_phylodiff,                      # adding the raw data 
              aes(x = rdiff, y = log(mean_r), color = PH_ID)) + 
-  labs(x = "growth rate difference", y = "log(EoC)") + 
+  labs(x = "growth rate distance", y = "log(EoC)") + 
   theme_cowplot() +
   theme(plot.background = element_rect(fill = "white"), legend.position = "none")
 # ggsave("plot_EOCr_rdiff.png")
