@@ -1041,7 +1041,7 @@ plot_EOCr_distbay = ggplot(pred_EOCr_distbay) +
   labs(x = "phylogenetic distance", y = "log(EoC)") + 
   theme_cowplot() +
   theme(plot.background = element_rect(fill = "white"), legend.position = "none")
-# ggsave("plot_EOCr_distbay.png")
+# ggsave("plot_EOCr_distbay.png", width = 8, height = 8, units = "in")
 
 pred_EOCr_rdiff = ggpredict(mod_EOCr_rdiff, terms = c("rdiff", "PH_ID"), back.transform = FALSE)
 plot_EOCr_rdiff = ggplot(pred_EOCr_rdiff) + 
@@ -1053,7 +1053,7 @@ plot_EOCr_rdiff = ggplot(pred_EOCr_rdiff) +
   labs(x = "growth rate distance", y = "log(EoC)") + 
   theme_cowplot() +
   theme(plot.background = element_rect(fill = "white"), legend.position = "none")
-# ggsave("plot_EOCr_rdiff.png")
+# ggsave("plot_EOCr_rdiff.png", width = 8, height = 8, units = "in")
 
 # for K
 pred_EOCK_K = ggpredict(mod_EOCK_K, terms = c("cont_Kmean", "PH_ID"))
