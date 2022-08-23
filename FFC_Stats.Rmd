@@ -53,14 +53,6 @@ stargazer(lm(mean_r~Fun_ID*PH_ID*opp_ID, data = final_data_eoc),
           digits = 3
 )
 
-stargazer(lm(mean_K~Fun_ID*PH_ID*opp_ID, data = final_data_eoc), 
-          # out = "lmeocK.htm",
-          type = "text",
-          dep.var.labels = c("Colony Size"),
-          summary = TRUE,
-          digits = 3
-)
-
 # stats for sin plot
 Tuk_rsin = TukeyHSD(aov(lm(value~PH_ID*Fun_ID, data=final_data_sin[final_data_sin$key=="r",])))
 Tuk_rsin = as.data.frame((Tuk_rsin[[3]]))
@@ -72,17 +64,7 @@ Tuk_rsin = Tuk_rsin %>%
 Tuk_rsin_fin = Tuk_rsin[Tuk_rsin$fun==Tuk_rsin$opp,]
 Tuk_rsin_fin$key = "r"
 
-Tuk_Ksin = TukeyHSD(aov(lm(value~PH_ID*Fun_ID, data=final_data_sin[final_data_sin$key=="K",])))
-Tuk_Ksin = as.data.frame((Tuk_Ksin[[3]]))
-Tuk_Ksin = Tuk_Ksin[Tuk_Ksin$`p adj`<=0.05,]
-Tuk_Ksin = Tuk_Ksin %>% 
-    mutate(pair = rownames(Tuk_Ksin)) %>% 
-    select(pair, diff, lwr, upr, `p adj`) %>% 
-    mutate(fun=substr(pair,3,3), opp=substr(pair,7,7))
-Tuk_Ksin_fin = Tuk_Ksin[Tuk_Ksin$fun==Tuk_Ksin$opp,]
-Tuk_Ksin_fin$key = "K"
-
-Tuk_sin_fin = rbind(Tuk_rsin_fin,Tuk_Ksin_fin)
+Tuk_sin_fin = rbind(Tuk_rsin_fin)
 # write_csv(Tuk_sin_fin, "~/FungalFightClub/Tuk_sin_fin.csv")
 
 # stats for gen eoc plot
@@ -96,17 +78,7 @@ Tuk_rgeoc = Tuk_rgeoc %>%
 Tuk_rgeoc_fin = Tuk_rgeoc[Tuk_rgeoc$fun==Tuk_rgeoc$opp,]
 Tuk_rgeoc_fin$key = "r"
 
-Tuk_Kgeoc = TukeyHSD(aov(lm(mean_K~PH_ID*Fun_ID, data=final_data_eoc)))
-Tuk_Kgeoc = as.data.frame((Tuk_Kgeoc[[3]]))
-Tuk_Kgeoc = Tuk_Kgeoc[Tuk_Kgeoc$`p adj`<=0.05,]
-Tuk_Kgeoc = Tuk_Kgeoc %>% 
-    mutate(pair = rownames(Tuk_Kgeoc)) %>% 
-    select(pair, diff, lwr, upr, `p adj`) %>% 
-    mutate(fun=substr(pair,3,3), opp=substr(pair,7,7))
-Tuk_Kgeoc_fin = Tuk_Kgeoc[Tuk_Kgeoc$fun==Tuk_Kgeoc$opp,]
-Tuk_Kgeoc_fin$key = "K"
-
-Tuk_geoc_fin = rbind(Tuk_rgeoc_fin,Tuk_Kgeoc_fin)
+Tuk_geoc_fin = rbind(Tuk_rgeoc_fin)
 # write_csv(Tuk_geoc_fin, "~/FungalFightClub/Tuk_geoc_fin.csv")
 
 # stats for svs and eoc plots
@@ -128,22 +100,6 @@ for(i in 1:length(fungi)){
     sig_reoc_fin = rbind(sig_reoc_fin,Tuk_reoc_fin)
   }
   
-  # find significant differences in EOC K values between pH conditions
-  Tuk_Keoc = TukeyHSD(aov(lm(mean_K~PH_ID*opp_ID, data=final_data_eoc[final_data_eoc$Fun_ID==fungi[i],])))
-  Tuk_Keoc = as.data.frame(Tuk_Keoc[[3]])
-  Tuk_Keoc = Tuk_Keoc[Tuk_Keoc$`p adj`<=0.05,]
-  Tuk_Keoc = Tuk_Keoc %>% 
-    mutate(Fun = fungi[i], pair = rownames(Tuk_Keoc)) %>% 
-    select(Fun, pair, diff, lwr, upr, `p adj`) %>% 
-    mutate(p1.f=substr(pair,3,3), p1.pH=substr(pair,1,1), p2.f=substr(pair,7,7), p2.pH=substr(pair,5,5))
-  Tuk_Keoc_fin = Tuk_Keoc[Tuk_Keoc$p1.f==Tuk_Keoc$p2.f,]
-  if(i==1){
-    sig_Keoc_fin = Tuk_Keoc_fin
-  }
-  else{
-    sig_Keoc_fin = rbind(sig_Keoc_fin,Tuk_Keoc_fin)
-  }
-  
   # find significant differences in r values between controls and fungi in competition
   Tuk_rsvs = TukeyHSD(aov(lm(r~PH_ID*opp_ID, data=final_data_eoc[final_data_eoc$Fun_ID==fungi[i],])))
   Tuk_rsvs = as.data.frame(Tuk_rsvs[[3]])
@@ -159,34 +115,15 @@ for(i in 1:length(fungi)){
   else{
     sig_svs_fin_r = rbind(sig_svs_fin_r,Tuk_rsvs_fin)
   }
-  
-  # find significant differences in K values between controls and fungi in competition
-  Tuk_ksvs = TukeyHSD(aov(lm(K~PH_ID*opp_ID, data=final_data_eoc[final_data_eoc$Fun_ID==fungi[i],])))
-  Tuk_ksvs = as.data.frame(Tuk_ksvs[[3]])
-  Tuk_ksvs = Tuk_ksvs[Tuk_ksvs$`p adj`<=0.05,]
-  Tuk_ksvs = Tuk_ksvs %>% 
-    mutate(Fun = fungi[i], pair = rownames(Tuk_ksvs)) %>% 
-    select(Fun, pair, diff, lwr, upr, `p adj`) %>% 
-    mutate(p1.f=substr(pair,3,3), p1.pH=substr(pair,1,1), p2.f=substr(pair,7,7), p2.pH=substr(pair,5,5))
-  Tuk_ksvs_fin = Tuk_ksvs[(Tuk_ksvs$p1.f==fungi[i] | Tuk_ksvs$p2.f==fungi[i]),]
-  if(i==1){
-    sig_svs_fin_K = Tuk_ksvs_fin
-  }
-  else{
-    sig_svs_fin_K = rbind(sig_svs_fin_K,Tuk_ksvs_fin)
-  }
 }
 
 # combine data
 sig_reoc_fin$key = "r"
-sig_Keoc_fin$key = "K"
-sig_eoc_fin = rbind(sig_reoc_fin,sig_Keoc_fin)
-
+sig_eoc_fin = rbind(sig_reoc_fin)
 sig_svs_fin_r$key = "r"
-sig_svs_fin_K$key = "K"
-sig_svs_fin = rbind(sig_svs_fin_r,sig_svs_fin_K)
-
+sig_svs_fin = rbind(sig_svs_fin_r)
 Tuk_final = rbind(sig_eoc_fin, sig_svs_fin)
+
 # write_csv(Tuk_final, "~/FungalFightClub/Tuk_final.csv")
 # write_csv(sig_svs_fin, "~/FungalFightClub/sig_svs_fin.csv")
 # write_csv(sig_eoc_fin, "~/FungalFightClub/sig_eoc_fin.csv")
