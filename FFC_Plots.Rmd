@@ -23,21 +23,21 @@ library(ggeffects)
 library(svglite)
 
 # read in data
-final_data = read_csv("~/FungalFightClub/finaldata1.csv")
+final_data = read_csv("~/FungalFightClub/CSVs/finaldata1.csv")
 final_data_sin = final_data[final_data$cont_ID=="s",]
-final_data_eoc = read_csv("~/FungalFightClub/final_data_eoc.csv")
+final_data_eoc = read_csv("~/FungalFightClub/CSVs/final_data_eoc.csv")
 final_data_eoc$PH_ID = as.character(final_data_eoc$PH_ID) # to fix code
 final_data_eoc$Plug_ID = substr(final_data_eoc$Plug_ID,1,4) # to fix code
-Tuk_sin_fin = read_csv("~/FungalFightClub/Tuk_sin_fin.csv")
-Tuk_geoc_fin = read_csv("~/FungalFightclub/Tuk_geoc_fin.csv")
-Tuk_final = read_csv("~/FungalFightClub/Tuk_final.csv")
-sig_svs_fin = read_csv("~/FungalFightClub/sig_svs_fin.csv")
-sig_eoc_fin = read_csv("~/FungalFightClub/sig_eoc_fin.csv")
-net_rt = read_csv("~/FungalFightClub/FFC Treatments - Reaction Types.csv")
-FFC_nex = read.nexus("~/FungalFightClub/infile.nex.con.tre")
-FFC_nexbay = read.nexus("~/FungalFightClub/mrBayesPost.nex")
-FFC_nexrax = read.nexus("~/FungalFightClub/RAxML_Tree.nex")
-ffc_n_pair = read_csv("~/FungalFightClub/ffc_n_pair.csv")
+Tuk_sin_fin = read_csv("~/FungalFightClub/CSVs/Tuk_sin_fin.csv")
+Tuk_geoc_fin = read_csv("~/FungalFightclub/CSVs/Tuk_geoc_fin.csv")
+Tuk_final = read_csv("~/FungalFightClub/CSVs/Tuk_final.csv")
+sig_svs_fin = read_csv("~/FungalFightClub/CSVs/sig_svs_fin.csv")
+sig_eoc_fin = read_csv("~/FungalFightClub/CSVs/sig_eoc_fin.csv")
+net_rt = read_csv("~/FungalFightClub/CSVs/FFC Treatments - Reaction Types.csv")
+FFC_nex = read.nexus("~/FungalFightClub/Plots/infile.nex.con.tre")
+FFC_nexbay = read.nexus("~/FungalFightClub/Plots/mrBayesPost.nex")
+FFC_nexrax = read.nexus("~/FungalFightClub/Plots/RAxML_Tree.nex")
+ffc_n_pair = read_csv("~/FungalFightClub/CSVs/ffc_n_pair.csv")
 
 # constants
 fungi = c("A","C","H","L","P")

@@ -12,7 +12,7 @@ library(Rmisc)
 library(tidyverse)
 
 # read in data
-final_data = read_csv("~/FungalFightClub/finaldata1.csv")
+final_data = read_csv("~/FungalFightClub/CSVs/finaldata1.csv")
 
 # constants
 fungi = c("A","C","H","L","P")

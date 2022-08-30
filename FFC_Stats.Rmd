@@ -14,7 +14,7 @@ library(gt)
 library(stargazer)
 
 # read in data
-final_data = read_csv("~/FungalFightClub/finaldata1.csv")
+final_data = read_csv("~/FungalFightClub/CSVs/finaldata1.csv")
 final_data_sin = final_data[final_data$cont_ID=="s",]
 final_data_sin = final_data_sin[,c(1:4,7,8)]
 final_data_sin = gather(final_data_sin, "key", "value", -Plate_ID, -Fun_ID, -cont_ID, -PH_ID)
@@ -25,7 +25,7 @@ final_data_svs = final_data[final_data$cont_ID=="v",]
 final_data_svs = final_data_svs[,c(1:4,7,8)]
 final_data_svs = gather(final_data_svs, "key", "value", -Plate_ID, -Fun_ID, -cont_ID, -PH_ID)
 
-final_data_eoc = read_csv("~/FungalFightClub/final_data_eoc.csv")
+final_data_eoc = read_csv("~/FungalFightClub/CSVs/final_data_eoc.csv")
 final_data_eoc = final_data_eoc[final_data_eoc$cont_ID!="s",]
 final_data_eoc$PH_ID = as.factor(final_data_eoc$PH_ID)
 final_data_eoc$opp_ID = as.factor(final_data_eoc$opp_ID)
