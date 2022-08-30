@@ -45,7 +45,7 @@ pH = c(5,7)
 value = c("r","K")
 
 # labels
-labs = data.frame(main=c("(a) Amanita muscaria","(b) Cenococcum geophilum","(c) Hebeloma cylindrosporum","(d) Laccaria bicolor","(e) Paxillus involutus"), letter=c("(a)","(b)","(c)","(d)","(e)"), nams=c("A. muscaria","C. geophilum","H. cylindrosporum","L. bicolor","P. involutus"), x=c(-0.055,-0.0725,-0.0775,-0.05,-0.055), y=c(1,1,1,1,1))
+labs = data.frame(main=c("(a) Amanita muscaria","(b) Cenococcum geophilum","(c) Hebeloma cylindrosporum","(d) Laccaria bicolor","(e) Paxillus involutus"), letter=c("(a)","(b)","(c)","(d)","(e)"), nams=c("A. muscaria","C. geophilum","H. cylindrosporum","L. bicolor","P. involutus"), x=c(-0.055,-0.095,-0.105,-0.0475,-0.055), y=c(1,1,1,1,1))
 
 # color palette
 palette = c("#EC8FA3", "#FCBA65", "#FAECCF", "#8D7F99", "#8C9D57")
@@ -116,6 +116,7 @@ svsplot_r = ggplot(final_data_svs[final_data_svs$key=="r",], aes(Fun_ID, value))
 svsplot_r
 ```
 
+#Kite Plot
 ```{r kite plot}
 col00 <- "#EDB1AB"
 colL0 <- "#ABDCDE"
@@ -156,6 +157,7 @@ legend(3.5,0.37,legend=c('Single Control, pH 7 ','SvS Control, pH 7'),horiz=T,pc
 dev.off()
 ```
 
+#Gen EoC Plot
 ```{r eoc gen plot}
 # configure stat labels
 Tuk_geoc_fin = Tuk_geoc_fin[,c(6,5,8)]
@@ -266,7 +268,7 @@ eocplots[[5]] = eocplots[[5]] + scale_x_discrete(labels = labs$nams) + theme(axi
 eocplots[[10]] = eocplots[[10]] + scale_x_discrete(labels = labs$nams) + theme(axis.text.x = element_text(face="italic", angle=330, size=10))
 
 # assemble eoc by r plot
-eocplot_r=plot_grid(eocplots[[1]],eocplots[[2]],eocplots[[3]],eocplots[[4]],eocplots[[5]],nrow=5,ncol=1,labels=labs$main,label_size=14,label_x=labs$x,label_y=labs$y,rel_heights= c(1,1,1,1,1.25))
+eocplot_r=plot_grid(eocplots[[1]],eocplots[[2]],eocplots[[3]],eocplots[[4]],eocplots[[5]],nrow=5,ncol=1,align="v",axis="l",labels=labs$main,label_size=14,label_x=labs$x,label_y=labs$y,rel_heights= c(1,1,1,1,1.25))
 ggsave("eocplot_r.svg", device = "svg", height = 11, width = 8)
 
 eocplot_r
