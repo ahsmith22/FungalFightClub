@@ -1,4 +1,4 @@
-# FungalFightClub
+# Fungal Fight Club
 
 Data and analysis to accompany Smith et al., "Fungal Fight Club: Phylogeny and growth rate predict competitive outcomes among ectomycorrhizal fungi."
 
