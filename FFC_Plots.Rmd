@@ -23,21 +23,21 @@ library(ggeffects)
 library(svglite)
 
 # read in data
-final_data = read_csv("~/FungalFightClub/CSVs/finaldata1.csv")
+final_data = read_csv("~/FungalFightClub/Data/finaldata1.csv")
 final_data_sin = final_data[final_data$cont_ID=="s",]
-final_data_eoc = read_csv("~/FungalFightClub/CSVs/final_data_eoc.csv")
+final_data_eoc = read_csv("~/FungalFightClub/Data/final_data_eoc.csv")
 final_data_eoc$PH_ID = as.character(final_data_eoc$PH_ID) # to fix code
 final_data_eoc$Plug_ID = substr(final_data_eoc$Plug_ID,1,4) # to fix code
-Tuk_sin_fin = read_csv("~/FungalFightClub/CSVs/Tuk_sin_fin.csv")
-Tuk_geoc_fin = read_csv("~/FungalFightclub/CSVs/Tuk_geoc_fin.csv")
-Tuk_final = read_csv("~/FungalFightClub/CSVs/Tuk_final.csv")
-sig_svs_fin = read_csv("~/FungalFightClub/CSVs/sig_svs_fin.csv")
-sig_eoc_fin = read_csv("~/FungalFightClub/CSVs/sig_eoc_fin.csv")
-net_rt = read_csv("~/FungalFightClub/CSVs/FFC Treatments - Reaction Types.csv")
+Tuk_sin_fin = read_csv("~/FungalFightClub/Tables/Tuk_sin_fin.csv")
+Tuk_geoc_fin = read_csv("~/FungalFightclub/Tables/Tuk_geoc_fin.csv")
+Tuk_final = read_csv("~/FungalFightClub/Tables/Tuk_final.csv")
+sig_svs_fin = read_csv("~/FungalFightClub/Tables/sig_svs_fin.csv")
+sig_eoc_fin = read_csv("~/FungalFightClub/Tables/sig_eoc_fin.csv")
+net_rt = read_csv("~/FungalFightClub/Data/FFC Treatments - Reaction Types.csv")
 FFC_nex = read.nexus("~/FungalFightClub/Plots/infile.nex.con.tre")
 FFC_nexbay = read.nexus("~/FungalFightClub/Plots/mrBayesPost.nex")
 FFC_nexrax = read.nexus("~/FungalFightClub/Plots/RAxML_Tree.nex")
-ffc_n_pair = read_csv("~/FungalFightClub/CSVs/ffc_n_pair.csv")
+ffc_n_pair = read_csv("~/FungalFightClub/Data/ffc_n_pair.csv")
 
 # constants
 fungi = c("A","C","H","L","P")
@@ -674,6 +674,14 @@ stargazer(mod_EOCr_rdiff, mod_EOCr_distbay, mod_EOC_all,
   digits = 3
 )
 
+stargazer(mod_dist_r,
+  type = "text",
+  # out = "mod_rdist_phylodiff.htm",
+  dep.var.labels = c("Phylogenetic Distance"),
+  covariate.labels = c("Growth Rate Distance", "pH 7", "Growth Rate Distance:pH 7"),
+  star.cutoffs = c(0.05,0.01,0.001),
+  digits = 3)
+
 # graphs for linear models
 pred_dist_r = ggpredict(mod_dist_r, terms = c("rdiff", "PH_ID"))
 plot_dist_r = ggplot(pred_dist_r) + 
@@ -682,9 +690,9 @@ plot_dist_r = ggplot(pred_dist_r) +
               alpha = 0.2) +  # error band
   geom_point(data = final_data_phylodiff,                      # adding the raw data 
              aes(x = rdiff, y = dist, color = PH_ID)) + 
-  labs(x = "control growth rate diff", y = "dist") + 
+  labs(x = "control growth rate difference", y = "phylogenetic distance") + 
   theme_cowplot() +
-  theme(plot.background = element_rect(fill = "white"))
+  theme(plot.background = element_rect(fill = "white"), legend.position = "none", axis.title = element_text(size = 18))
 # ggsave("plot_dist_r.png")
 
 # graphing the linear mixed effect models
