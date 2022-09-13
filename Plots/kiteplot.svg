@@ -146,6 +146,12 @@
 <circle cx='494.62' cy='211.46' r='4.05' style='stroke-width: 0.75; fill: #E66053;' />
 <circle cx='565.53' cy='121.24' r='4.05' style='stroke-width: 0.75; fill: #EDB1AB;' />
 <circle cx='612.80' cy='167.31' r='4.05' style='stroke-width: 0.75; fill: #E66053;' />
+<text x='220.44' y='301.58' text-anchor='middle' style='font-size: 12.00px; font-family: "Arial";' textLength='9.35px' lengthAdjust='spacingAndGlyphs'>**</text>
+<text x='270.07' y='317.45' text-anchor='middle' style='font-size: 12.00px; font-family: "Arial";' textLength='9.35px' lengthAdjust='spacingAndGlyphs'>**</text>
+<text x='102.25' y='218.21' text-anchor='middle' style='font-size: 12.00px; font-family: "Arial";' textLength='14.02px' lengthAdjust='spacingAndGlyphs'>***</text>
+<text x='125.89' y='221.69' text-anchor='middle' style='font-size: 12.00px; font-family: "Arial";' textLength='14.02px' lengthAdjust='spacingAndGlyphs'>***</text>
+<text x='338.62' y='222.32' text-anchor='middle' style='font-size: 12.00px; font-family: "Arial";' textLength='14.02px' lengthAdjust='spacingAndGlyphs'>***</text>
+<text x='385.89' y='249.68' text-anchor='middle' style='font-size: 12.00px; font-family: "Arial";' textLength='14.02px' lengthAdjust='spacingAndGlyphs'>***</text>
 </g>
 <g clip-path='url(#cpMC4wMHw2NDguMDB8MC4wMHw0MzIuMDA=)'>
 <line x1='116.44' y1='374.40' x2='589.16' y2='374.40' style='stroke-width: 0.75;' />

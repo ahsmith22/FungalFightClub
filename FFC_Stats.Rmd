@@ -14,7 +14,7 @@ library(gt)
 library(stargazer)
 
 # read in data
-final_data = read_csv("~/FungalFightClub/CSVs/finaldata1.csv")
+final_data = read_csv("~/FungalFightClub/Data/finaldata1.csv")
 final_data_sin = final_data[final_data$cont_ID=="s",]
 final_data_sin = final_data_sin[,c(1:4,7,8)]
 final_data_sin = gather(final_data_sin, "key", "value", -Plate_ID, -Fun_ID, -cont_ID, -PH_ID)
@@ -25,7 +25,7 @@ final_data_svs = final_data[final_data$cont_ID=="v",]
 final_data_svs = final_data_svs[,c(1:4,7,8)]
 final_data_svs = gather(final_data_svs, "key", "value", -Plate_ID, -Fun_ID, -cont_ID, -PH_ID)
 
-final_data_eoc = read_csv("~/FungalFightClub/CSVs/final_data_eoc.csv")
+final_data_eoc = read_csv("~/FungalFightClub/Data/final_data_eoc.csv")
 final_data_eoc = final_data_eoc[final_data_eoc$cont_ID!="s",]
 final_data_eoc$PH_ID = as.factor(final_data_eoc$PH_ID)
 final_data_eoc$opp_ID = as.factor(final_data_eoc$opp_ID)
@@ -41,8 +41,6 @@ value = c("r","K")
 # ANOVAs for growth measures effected by pH
 summary.aov(aov(value~PH_ID, data = final_data_sin[final_data_sin$key=="r",]))
 summary.aov(aov(value~PH_ID, data = final_data_svs[final_data_svs$key=="r",]))
-summary.aov(aov(value~PH_ID, data = final_data_sin[final_data_sin$key=="K",]))
-summary.aov(aov(value~PH_ID, data = final_data_svs[final_data_svs$key=="K",]))
 
 # linear model for EOC
 stargazer(lm(mean_r~Fun_ID*PH_ID*opp_ID, data = final_data_eoc), 
@@ -66,6 +64,29 @@ Tuk_rsin_fin$key = "r"
 
 Tuk_sin_fin = rbind(Tuk_rsin_fin)
 # write_csv(Tuk_sin_fin, "~/FungalFightClub/Tuk_sin_fin.csv")
+
+# stats for kite plot
+final_data_kite = rbind(final_data_sin,final_data_svs)
+Tuk_kite5 = TukeyHSD(aov(lm(value~cont_ID*Fun_ID, data=final_data_kite[final_data_kite$key=="r"&final_data_kite$PH_ID==5,])))
+Tuk_kite5 = as.data.frame((Tuk_kite5[[3]]))
+Tuk_kite5 = Tuk_kite5[Tuk_kite5$`p adj`<=0.05,]
+Tuk_kite5 = Tuk_kite5 %>% 
+    mutate(pair = rownames(Tuk_kite5)) %>% 
+    select(pair, diff, lwr, upr, `p adj`) %>% 
+    mutate(fun=substr(pair,3,3), opp=substr(pair,7,7))
+Tuk_kite5_fin = Tuk_kite5[Tuk_kite5$fun==Tuk_kite5$opp,]
+
+Tuk_kite7 = TukeyHSD(aov(lm(value~cont_ID*Fun_ID, data=final_data_kite[final_data_kite$key=="r"&final_data_kite$PH_ID==7,])))
+Tuk_kite7 = as.data.frame((Tuk_kite7[[3]]))
+Tuk_kite7 = Tuk_kite7[Tuk_kite7$`p adj`<=0.05,]
+Tuk_kite7 = Tuk_kite7 %>% 
+    mutate(pair = rownames(Tuk_kite7)) %>% 
+    select(pair, diff, lwr, upr, `p adj`) %>% 
+    mutate(fun=substr(pair,3,3), opp=substr(pair,7,7))
+Tuk_kite7_fin = Tuk_kite7[Tuk_kite7$fun==Tuk_kite7$opp,]
+
+Tuk_kite_fin = rbind(Tuk_kite5_fin,Tuk_kite7_fin)
+# write_csv(Tuk_kite_fin, "~/FungalFightClub/Tuk_kite_fin.csv")
 
 # stats for gen eoc plot
 Tuk_rgeoc = TukeyHSD(aov(lm(mean_r~PH_ID*Fun_ID, data=final_data_eoc)))

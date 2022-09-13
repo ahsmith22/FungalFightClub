@@ -9,13 +9,13 @@ output: html_document
 library(tidyverse)
 library(sciplot)
 
-pairdata <- read.csv("~/FungalFightClub/CSVs/FFC Treatments - Pairwise.csv", header=TRUE)
+pairdata <- read.csv("~/FungalFightClub/Data/FFC Treatments - Pairwise.csv", header=TRUE)
 pairdata = pairdata[pairdata$X == "",]
 
-svsdata <- read.csv("~/FungalFightClub/CSVs/FFC Treatments - Controls SVS.csv", header=TRUE)
+svsdata <- read.csv("~/FungalFightClub/Data/FFC Treatments - Controls SVS.csv", header=TRUE)
 svsdata = svsdata[svsdata$X == "",]
 
-sgdata <- read.csv("~/FungalFightClub/CSVs/FFC Treatments - Controls.csv", header=TRUE)
+sgdata <- read.csv("~/FungalFightClub/Data/FFC Treatments - Controls.csv", header=TRUE)
 sgdata = sgdata[sgdata$X == "",]
 
 
