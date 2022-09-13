@@ -173,6 +173,17 @@ Tuk_svscont_table = sig_svs_cont %>%
 # gtsave(Tuk_svscont_table, "Tuk_svscont_table.htm")
 Tuk_svscont_table
 
+Tuk_kite_fin = Tuk_kite_fin[,c(6,2:5)]
+colnames(Tuk_kite_fin) = c("Fungi", "Mean Difference", "Lower Bound", "Upper Bound", "Significance")
+Tuk_kite_table = Tuk_kite_fin %>% 
+  gt() %>% 
+  cols_align(
+    align = "center",
+    columns = everything()
+  )
+# gtsave(Tuk_kite_table, "Tuk_kite_table.htm")
+Tuk_kite_table
+
 sig_gen_eoc = Tuk_rgeoc_fin[,c(6,2:5)]
 colnames(sig_gen_eoc) = c("Fungi", "Mean Difference", "Lower Bound", "Upper Bound", "Significance")
 Tuk_geoc_table = sig_gen_eoc %>% 
