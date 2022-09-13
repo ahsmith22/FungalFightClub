@@ -64,7 +64,9 @@ Code is split into 4 markdown files that can be run independently:
 
 - Tuk_geoc_table.htm: Results of TukeyHSD testing across species in table form
 
-- Tuk_kite_fin.csv: Supplemental Table 5. Significant TukeyHSD results comparing single and svs control growth rates
+- Tuk_kite_fin.csv: Results of TukeyHSD testing between single and svs controls
+
+- Tuk_kite_table.htm: Supplemental Table 5. Significant TukeyHSD results comparing single and svs control growth rates
 
 - Tuk_sin_fin.csv: Results of TukeyHSD testing on single controls
 
