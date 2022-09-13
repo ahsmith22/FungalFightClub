@@ -76,6 +76,8 @@ Code is split into 4 markdown files that can be run independently:
 
 - mod_EOCrdiff_distbay.htm: Table 1. ANOVA table comparing the two linear mixed effects models
 
+- mod_rdist_phylodiff.htm: Supplemental Table 8. Linear model results showing the correlation between growth rate distance and phylogenetic distance
+
 - sig_eoc_fin.csv: Results of TukeyHSD testing on all competitive treatments between pH conditions
 
 - sig_svs_fin.csv: Results of TukeyHSD testing on svs controls
