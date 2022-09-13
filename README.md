@@ -56,7 +56,7 @@ Code is split into 4 markdown files that can be run independently:
 
 ### Tables
 
-- Tuk_eocphdiff_table.htm: Supplemental Table 5. Significant TukeyHSD results comparing effects of pH on the EoC metric on growth rate
+- Tuk_eocphdiff_table.htm: Supplemental Table 6. Significant TukeyHSD results comparing effects of pH on the EoC metric on growth rate
 
 - Tuk_final.csv: Results of TukeyHSD testing on all competitions treatments
 
@@ -64,19 +64,21 @@ Code is split into 4 markdown files that can be run independently:
 
 - Tuk_geoc_table.htm: Results of TukeyHSD testing across species in table form
 
+- Tuk_kite_fin.csv: Supplemental Table 5. Significant TukeyHSD results comparing single and svs control growth rates
+
 - Tuk_sin_fin.csv: Results of TukeyHSD testing on single controls
 
 - Tuk_sincont_table.htm: Supplemental Table 3. Significant TukeyHSD results comparing effects of pH on single control growth rate
 
 - Tuk_svscont_table.htm: Supplemental Table 4. Significant TukeyHSD results comparing effects of pH on SvS control growth rate
 
-- Tuk_svsdiff_table.htm: Supplemental Table 6. TukeyHSD results comparing effects of interspecific competition on growth rate compared to growth rate in intraspecific competition
+- Tuk_svsdiff_table.htm: Supplemental Table 7. TukeyHSD results comparing effects of interspecific competition on growth rate compared to growth rate in intraspecific competition
 
-- lmeocr.htm: Supplemental Table 7. Linear model results showing the significance of fungal identity, competitor identity, and pH in performance in competition 
+- lmeocr.htm: Supplemental Table 8. Linear model results showing the significance of fungal identity, competitor identity, and pH in performance in competition 
 
 - mod_EOCrdiff_distbay.htm: Table 1. ANOVA table comparing the two linear mixed effects models
 
-- mod_rdist_phylodiff.htm: Supplemental Table 8. Linear model results showing the correlation between growth rate distance and phylogenetic distance
+- mod_rdist_phylodiff.htm: Supplemental Table 9. Linear model results showing the correlation between growth rate distance and phylogenetic distance
 
 - sig_eoc_fin.csv: Results of TukeyHSD testing on all competitive treatments between pH conditions
 
