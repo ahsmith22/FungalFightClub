@@ -2,7 +2,9 @@
 title: "FFC_Stats"
 author: "Alex Smith"
 date: "6/4/2021"
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -12,6 +14,7 @@ library(tidyverse)
 library(vegan)
 library(gt)
 library(stargazer)
+library(pander)
 
 # read in data
 final_data = read_csv("~/FungalFightClub/Data/finaldata1.csv")
@@ -43,12 +46,11 @@ summary.aov(aov(value~PH_ID, data = final_data_sin[final_data_sin$key=="r",]))
 summary.aov(aov(value~PH_ID, data = final_data_svs[final_data_svs$key=="r",]))
 
 # linear model for EOC
+modeoc = summary(lm(mean_r~Fun_ID*PH_ID*opp_ID, data = final_data_eoc))
+pander(modeoc$coefficients)
 stargazer(lm(mean_r~Fun_ID*PH_ID*opp_ID, data = final_data_eoc), 
           # out = "lmeocr.htm",
-          type = "text",
-          dep.var.labels = c("Growth Rate"),
-          summary = TRUE,
-          digits = 3
+          type = "text"
 )
 
 # stats for sin plot
