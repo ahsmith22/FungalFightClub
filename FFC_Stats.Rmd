@@ -44,12 +44,21 @@ value = c("r","K")
 # ANOVAs for growth measures effected by pH
 summary.aov(aov(value~PH_ID, data = final_data_sin[final_data_sin$key=="r",]))
 summary.aov(aov(value~PH_ID, data = final_data_svs[final_data_svs$key=="r",]))
+summary.aov(aov(value~PH_ID, data = final_data_sin[final_data_sin$key=="K",]))
+summary.aov(aov(value~PH_ID, data = final_data_svs[final_data_svs$key=="K",]))
 
 # linear model for EOC
 modeoc = summary(lm(mean_r~Fun_ID*PH_ID*opp_ID, data = final_data_eoc))
 pander(modeoc$coefficients)
 stargazer(lm(mean_r~Fun_ID*PH_ID*opp_ID, data = final_data_eoc), 
           # out = "lmeocr.htm",
+          type = "text"
+)
+
+modeocK = summary(lm(mean_K~Fun_ID*PH_ID*opp_ID, data = final_data_eoc))
+pander(modeocK$coefficients)
+stargazer(lm(mean_K~Fun_ID*PH_ID*opp_ID, data = final_data_eoc), 
+          # out = "lmeocK.htm",
           type = "text"
 )
 
@@ -67,28 +76,67 @@ Tuk_rsin_fin$key = "r"
 Tuk_sin_fin = rbind(Tuk_rsin_fin)
 # write_csv(Tuk_sin_fin, "~/FungalFightClub/Tuk_sin_fin.csv")
 
+Tuk_Ksin = TukeyHSD(aov(lm(value~PH_ID*Fun_ID, data=final_data_sin[final_data_sin$key=="K",])))
+Tuk_Ksin = as.data.frame((Tuk_Ksin[[3]]))
+Tuk_Ksin = Tuk_Ksin[Tuk_Ksin$`p adj`<=0.05,]
+Tuk_Ksin = Tuk_Ksin %>% 
+    mutate(pair = rownames(Tuk_Ksin)) %>% 
+    select(pair, diff, lwr, upr, `p adj`) %>% 
+    mutate(fun=substr(pair,3,3), opp=substr(pair,7,7))
+Tuk_Ksin_fin = Tuk_Ksin[Tuk_Ksin$fun==Tuk_Ksin$opp,]
+Tuk_Ksin_fin$key = "K"
+
+Tuk_sin_finK = rbind(Tuk_Ksin_fin)
+# write_csv(Tuk_sin_finK, "~/FungalFightClub/Tuk_sin_finK.csv")
+
 # stats for kite plot
 final_data_kite = rbind(final_data_sin,final_data_svs)
+
 Tuk_kite5 = TukeyHSD(aov(lm(value~cont_ID*Fun_ID, data=final_data_kite[final_data_kite$key=="r"&final_data_kite$PH_ID==5,])))
 Tuk_kite5 = as.data.frame((Tuk_kite5[[3]]))
 Tuk_kite5 = Tuk_kite5[Tuk_kite5$`p adj`<=0.05,]
+Tuk_kite5$pH = 5
 Tuk_kite5 = Tuk_kite5 %>% 
     mutate(pair = rownames(Tuk_kite5)) %>% 
-    select(pair, diff, lwr, upr, `p adj`) %>% 
+    select(pair, pH, diff, lwr, upr, `p adj`) %>% 
     mutate(fun=substr(pair,3,3), opp=substr(pair,7,7))
 Tuk_kite5_fin = Tuk_kite5[Tuk_kite5$fun==Tuk_kite5$opp,]
 
 Tuk_kite7 = TukeyHSD(aov(lm(value~cont_ID*Fun_ID, data=final_data_kite[final_data_kite$key=="r"&final_data_kite$PH_ID==7,])))
 Tuk_kite7 = as.data.frame((Tuk_kite7[[3]]))
 Tuk_kite7 = Tuk_kite7[Tuk_kite7$`p adj`<=0.05,]
+Tuk_kite7$pH = 7
 Tuk_kite7 = Tuk_kite7 %>% 
     mutate(pair = rownames(Tuk_kite7)) %>% 
-    select(pair, diff, lwr, upr, `p adj`) %>% 
+    select(pair, pH, diff, lwr, upr, `p adj`) %>% 
     mutate(fun=substr(pair,3,3), opp=substr(pair,7,7))
 Tuk_kite7_fin = Tuk_kite7[Tuk_kite7$fun==Tuk_kite7$opp,]
 
 Tuk_kite_fin = rbind(Tuk_kite5_fin,Tuk_kite7_fin)
 # write_csv(Tuk_kite_fin, "~/FungalFightClub/Tuk_kite_fin.csv")
+
+Tuk_kite5K = TukeyHSD(aov(lm(value~cont_ID*Fun_ID, data=final_data_kite[final_data_kite$key=="K"&final_data_kite$PH_ID==5,])))
+Tuk_kite5K = as.data.frame((Tuk_kite5K[[3]]))
+Tuk_kite5K = Tuk_kite5K[Tuk_kite5K$`p adj`<=0.05,]
+Tuk_kite5K$pH = 5
+Tuk_kite5K = Tuk_kite5K %>% 
+    mutate(pair = rownames(Tuk_kite5K)) %>% 
+    select(pair, pH, diff, lwr, upr, `p adj`) %>% 
+    mutate(fun=substr(pair,3,3), opp=substr(pair,7,7))
+Tuk_kite5K_fin = Tuk_kite5K[Tuk_kite5K$fun==Tuk_kite5K$opp,]
+
+Tuk_kite7K = TukeyHSD(aov(lm(value~cont_ID*Fun_ID, data=final_data_kite[final_data_kite$key=="K"&final_data_kite$PH_ID==7,])))
+Tuk_kite7K = as.data.frame((Tuk_kite7K[[3]]))
+Tuk_kite7K = Tuk_kite7K[Tuk_kite7K$`p adj`<=0.05,]
+Tuk_kite7K$pH = 7
+Tuk_kite7K = Tuk_kite7K %>% 
+    mutate(pair = rownames(Tuk_kite7K)) %>% 
+    select(pair, pH, diff, lwr, upr, `p adj`) %>% 
+    mutate(fun=substr(pair,3,3), opp=substr(pair,7,7))
+Tuk_kite7K_fin = Tuk_kite7K[Tuk_kite7K$fun==Tuk_kite7K$opp,]
+
+Tuk_kite_finK = rbind(Tuk_kite5K_fin,Tuk_kite7K_fin)
+# write_csv(Tuk_kite_finK, "~/FungalFightClub/Tuk_kite_finK.csv")
 
 # stats for gen eoc plot
 Tuk_rgeoc = TukeyHSD(aov(lm(mean_r~PH_ID*Fun_ID, data=final_data_eoc)))
@@ -103,6 +151,19 @@ Tuk_rgeoc_fin$key = "r"
 
 Tuk_geoc_fin = rbind(Tuk_rgeoc_fin)
 # write_csv(Tuk_geoc_fin, "~/FungalFightClub/Tuk_geoc_fin.csv")
+
+Tuk_Kgeoc = TukeyHSD(aov(lm(mean_K~PH_ID*Fun_ID, data=final_data_eoc)))
+Tuk_Kgeoc = as.data.frame((Tuk_Kgeoc[[3]]))
+Tuk_Kgeoc = Tuk_Kgeoc[Tuk_Kgeoc$`p adj`<=0.05,]
+Tuk_Kgeoc = Tuk_Kgeoc %>% 
+    mutate(pair = rownames(Tuk_Kgeoc)) %>% 
+    select(pair, diff, lwr, upr, `p adj`) %>% 
+    mutate(fun=substr(pair,3,3), opp=substr(pair,7,7))
+Tuk_Kgeoc_fin = Tuk_Kgeoc[Tuk_Kgeoc$fun==Tuk_Kgeoc$opp,]
+Tuk_Kgeoc_fin$key = "K"
+
+Tuk_geoc_finK = rbind(Tuk_Kgeoc_fin)
+# write_csv(Tuk_geoc_finK, "~/FungalFightClub/Tuk_geoc_finK.csv")
 
 # stats for svs and eoc plots
 for(i in 1:length(fungi)){
@@ -123,6 +184,22 @@ for(i in 1:length(fungi)){
     sig_reoc_fin = rbind(sig_reoc_fin,Tuk_reoc_fin)
   }
   
+  # find significant differences in EOC K values between pH conditions
+  Tuk_Keoc = TukeyHSD(aov(lm(mean_K~PH_ID*opp_ID, data=final_data_eoc[final_data_eoc$Fun_ID==fungi[i],])))
+  Tuk_Keoc = as.data.frame(Tuk_Keoc[[3]])
+  Tuk_Keoc = Tuk_Keoc[Tuk_Keoc$`p adj`<=0.05,]
+  Tuk_Keoc = Tuk_Keoc %>% 
+    mutate(Fun = fungi[i], pair = rownames(Tuk_Keoc)) %>% 
+    select(Fun, pair, diff, lwr, upr, `p adj`) %>% 
+    mutate(p1.f=substr(pair,3,3), p1.pH=substr(pair,1,1), p2.f=substr(pair,7,7), p2.pH=substr(pair,5,5))
+  Tuk_Keoc_fin = Tuk_Keoc[Tuk_Keoc$p1.f==Tuk_Keoc$p2.f,]
+  if(i==1){
+    sig_Keoc_fin = Tuk_Keoc_fin
+  }
+  else{
+    sig_Keoc_fin = rbind(sig_Keoc_fin,Tuk_Keoc_fin)
+  }
+  
   # find significant differences in r values between controls and fungi in competition
   Tuk_rsvs = TukeyHSD(aov(lm(r~PH_ID*opp_ID, data=final_data_eoc[final_data_eoc$Fun_ID==fungi[i],])))
   Tuk_rsvs = as.data.frame(Tuk_rsvs[[3]])
@@ -138,6 +215,22 @@ for(i in 1:length(fungi)){
   else{
     sig_svs_fin_r = rbind(sig_svs_fin_r,Tuk_rsvs_fin)
   }
+  
+  # find significant differences in K values between controls and fungi in competition
+  Tuk_ksvs = TukeyHSD(aov(lm(K~PH_ID*opp_ID, data=final_data_eoc[final_data_eoc$Fun_ID==fungi[i],])))
+  Tuk_ksvs = as.data.frame(Tuk_ksvs[[3]])
+  Tuk_ksvs = Tuk_ksvs[Tuk_ksvs$`p adj`<=0.05,]
+  Tuk_ksvs = Tuk_ksvs %>% 
+    mutate(Fun = fungi[i], pair = rownames(Tuk_ksvs)) %>% 
+    select(Fun, pair, diff, lwr, upr, `p adj`) %>% 
+    mutate(p1.f=substr(pair,3,3), p1.pH=substr(pair,1,1), p2.f=substr(pair,7,7), p2.pH=substr(pair,5,5))
+  Tuk_ksvs_fin = Tuk_ksvs[(Tuk_ksvs$p1.f==fungi[i] | Tuk_ksvs$p2.f==fungi[i]),]
+  if(i==1){
+    sig_svs_fin_K = Tuk_ksvs_fin
+  }
+  else{
+    sig_svs_fin_K = rbind(sig_svs_fin_K,Tuk_ksvs_fin)
+  }
 }
 
 # combine data
@@ -151,6 +244,16 @@ Tuk_final = rbind(sig_eoc_fin, sig_svs_fin)
 # write_csv(sig_svs_fin, "~/FungalFightClub/sig_svs_fin.csv")
 # write_csv(sig_eoc_fin, "~/FungalFightClub/sig_eoc_fin.csv")
 
+sig_Keoc_fin$key = "K"
+sig_eoc_finK = rbind(sig_Keoc_fin)
+sig_svs_fin_K$key = "K"
+sig_svs_finK = rbind(sig_svs_fin_K)
+Tuk_finalK = rbind(sig_eoc_finK, sig_svs_finK)
+
+# write_csv(Tuk_finalK, "~/FungalFightClub/Tuk_finalK.csv")
+# write_csv(sig_svs_finK, "~/FungalFightClub/sig_svs_finK.csv")
+# write_csv(sig_eoc_finK, "~/FungalFightClub/sig_eoc_finK.csv")
+
 # create TukeyHSD results tables
 sig_sin_cont = Tuk_rsin_fin[,c(6,2:5)]
 colnames(sig_sin_cont) = c("Fungi", "Mean Difference", "Lower Bound", "Upper Bound", "Significance")
@@ -163,8 +266,19 @@ Tuk_sincont_table = sig_sin_cont %>%
 # gtsave(Tuk_sincont_table, "Tuk_sincont_table.htm")
 Tuk_sincont_table
 
+sig_sin_contK = Tuk_Ksin_fin[,c(6,2:5)]
+colnames(sig_sin_contK) = c("Fungi", "Mean Difference", "Lower Bound", "Upper Bound", "Significance")
+Tuk_sincont_tableK = sig_sin_contK %>% 
+  gt() %>% 
+  cols_align(
+    align = "center",
+    columns = everything()
+  )
+# gtsave(Tuk_sincont_tableK, "Tuk_sincont_tableK.htm")
+Tuk_sincont_tableK
+
 sig_svs_cont = sig_svs_fin[sig_svs_fin$p1.f==sig_svs_fin$p2.f&sig_svs_fin$p2.f==sig_svs_fin$Fun,]
-sig_svs_cont = sig_svs_cont[c(1,2),c(1,3:6)]
+sig_svs_cont = sig_svs_cont[,c(1,3:6)]
 colnames(sig_svs_cont) = c("Fungi", "Mean Difference", "Lower Bound", "Upper Bound", "Significance")
 Tuk_svscont_table = sig_svs_cont %>% 
   gt() %>% 
@@ -175,8 +289,20 @@ Tuk_svscont_table = sig_svs_cont %>%
 # gtsave(Tuk_svscont_table, "Tuk_svscont_table.htm")
 Tuk_svscont_table
 
-Tuk_kite_fin = Tuk_kite_fin[,c(6,2:5)]
-colnames(Tuk_kite_fin) = c("Fungi", "Mean Difference", "Lower Bound", "Upper Bound", "Significance")
+sig_svs_contK = sig_svs_finK[sig_svs_finK$p1.f==sig_svs_finK$p2.f&sig_svs_finK$p2.f==sig_svs_finK$Fun,]
+sig_svs_contK = sig_svs_contK[,c(1,3:6)]
+colnames(sig_svs_contK) = c("Fungi", "Mean Difference", "Lower Bound", "Upper Bound", "Significance")
+Tuk_svscont_tableK = sig_svs_contK %>% 
+  gt() %>% 
+  cols_align(
+    align = "center",
+    columns = everything()
+  )
+# gtsave(Tuk_svscont_tableK, "Tuk_svscont_tableK.htm")
+Tuk_svscont_tableK
+
+Tuk_kite_fin = Tuk_kite_fin[,c(7,2:6)]
+colnames(Tuk_kite_fin) = c("Fungi", "pH", "Mean Difference", "Lower Bound", "Upper Bound", "Significance")
 Tuk_kite_table = Tuk_kite_fin %>% 
   gt() %>% 
   cols_align(
@@ -185,6 +311,17 @@ Tuk_kite_table = Tuk_kite_fin %>%
   )
 # gtsave(Tuk_kite_table, "Tuk_kite_table.htm")
 Tuk_kite_table
+
+Tuk_kite_finK = Tuk_kite_finK[,c(7,2:6)]
+colnames(Tuk_kite_finK) = c("Fungi", "pH", "Mean Difference", "Lower Bound", "Upper Bound", "Significance")
+Tuk_kite_tableK = Tuk_kite_finK %>% 
+  gt() %>% 
+  cols_align(
+    align = "center",
+    columns = everything()
+  )
+# gtsave(Tuk_kite_tableK, "Tuk_kite_tableK.htm")
+Tuk_kite_tableK
 
 sig_gen_eoc = Tuk_rgeoc_fin[,c(6,2:5)]
 colnames(sig_gen_eoc) = c("Fungi", "Mean Difference", "Lower Bound", "Upper Bound", "Significance")
@@ -197,6 +334,17 @@ Tuk_geoc_table = sig_gen_eoc %>%
 # gtsave(Tuk_geoc_table, "Tuk_geoc_table.htm")
 Tuk_geoc_table
 
+sig_gen_eocK = Tuk_Kgeoc_fin[,c(6,2:5)]
+colnames(sig_gen_eocK) = c("Fungi", "Mean Difference", "Lower Bound", "Upper Bound", "Significance")
+Tuk_geoc_tableK = sig_gen_eocK %>% 
+  gt() %>% 
+  cols_align(
+    align = "center",
+    columns = everything()
+  )
+# gtsave(Tuk_geoc_tableK, "Tuk_geoc_tableK.htm")
+Tuk_geoc_tableK
+
 sig_eoc_fin = sig_reoc_fin[,c(1,7,3:6)]
 colnames(sig_eoc_fin) = c("Fungi", "Opponent", "Mean Difference", "Lower Bound", "Upper Bound", "Significance")
 Tuk_eocphdiff_table = sig_eoc_fin %>% 
@@ -208,9 +356,20 @@ Tuk_eocphdiff_table = sig_eoc_fin %>%
 # gtsave(Tuk_eocphdiff_table, "Tuk_eocphdiff_table.htm")
 Tuk_eocphdiff_table
 
+sig_eoc_finK = sig_Keoc_fin[,c(1,7,3:6)]
+colnames(sig_eoc_finK) = c("Fungi", "Opponent", "Mean Difference", "Lower Bound", "Upper Bound", "Significance")
+Tuk_eocphdiff_tableK = sig_eoc_finK %>% 
+  gt() %>% 
+  cols_align(
+    align = "center",
+    columns = everything()
+  )
+# gtsave(Tuk_eocphdiff_tableK, "Tuk_eocphdiff_tableK.htm")
+Tuk_eocphdiff_tableK
+
 sig_svs_fin = sig_svs_fin[sig_svs_fin$p1.pH==sig_svs_fin$p2.pH,]
 sig_svs_fin$p1.f = ifelse(sig_svs_fin$Fun==sig_svs_fin$p1.f, sig_svs_fin$p2.f, sig_svs_fin$p1.f)
-sig_svs_fin = sig_svs_fin[c(1:21),c(1,7,8,3:6)]
+sig_svs_fin = sig_svs_fin[,c(1,7,8,3:6)]
 colnames(sig_svs_fin) = c("Fungi", "Opponent", "pH", "Mean Difference", "Lower Bound", "Upper Bound", "Significance")
 Tuk_svsdiff_table = sig_svs_fin %>% 
   gt() %>% 
@@ -220,4 +379,17 @@ Tuk_svsdiff_table = sig_svs_fin %>%
   )
 # gtsave(Tuk_svsdiff_table, "Tuk_svsdiff_table.htm")
 Tuk_svsdiff_table
+
+sig_svs_finK = sig_svs_finK[sig_svs_finK$p1.pH==sig_svs_finK$p2.pH,]
+sig_svs_finK$p1.f = ifelse(sig_svs_finK$Fun==sig_svs_finK$p1.f, sig_svs_finK$p2.f, sig_svs_finK$p1.f)
+sig_svs_finK = sig_svs_finK[,c(1,7,8,3:6)]
+colnames(sig_svs_finK) = c("Fungi", "Opponent", "pH", "Mean Difference", "Lower Bound", "Upper Bound", "Significance")
+Tuk_svsdiff_tableK = sig_svs_finK %>% 
+  gt() %>% 
+  cols_align(
+    align = "center",
+    columns = everything()
+  )
+# gtsave(Tuk_svsdiff_tableK, "Tuk_svsdiff_tableK.htm")
+Tuk_svsdiff_tableK
 ```
