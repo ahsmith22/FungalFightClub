@@ -51,7 +51,7 @@ pH = c(5,7)
 value = c("r","K")
 
 # labels
-labs = data.frame(main=c("(a) Amanita muscaria","(b) Cenococcum geophilum","(c) Hebeloma cylindrosporum","(d) Laccaria bicolor","(e) Paxillus involutus"), letter=c("(a)","(b)","(c)","(d)","(e)"), nams=c("A. muscaria","C. geophilum","H. cylindrosporum","L. bicolor","P. involutus"), x=c(-0.055,-0.095,-0.105,-0.0475,-0.055), y=c(1,1,1,1,1))
+labs = data.frame(main=c("Cenococcum geophilum","Amanita muscaria","Hebeloma cylindrosporum","Paxillus involutus","Laccaria bicolor"), letter=c("(a)","(b)","(c)","(d)","(e)"), nams=c("A. muscaria","C. geophilum","H. cylindrosporum","L. bicolor","P. involutus"), x=c(-0.055,-0.095,-0.105,-0.0475,-0.055), y=c(1,1,1,1,1))
 
 # color palette
 palette = c("#EC8FA3", "#FCBA65", "#FAECCF", "#8D7F99", "#8C9D57")
@@ -146,7 +146,7 @@ xcoordsig$y = c(0.1353273,0.1220594,0.2050274,0.2021214,0.2015902,0.1787201)
 xcoordsig$sig = c(rep("**",2),rep("***",4))
 
 # png("kiteplot.png", width = 9, height = 6, units = "in", res = 200)
-svglite("kiteplot.svg", width = 9, height = 6)
+# svglite("kiteplot.svg", width = 9, height = 6)
 
 par(mar=c(4,5,1,1))
 plot(xcoords,final_cont_sum[final_cont_sum$PH_ID==7,]$mean,xlab='',ylab=expression('growth rate (cm'^'2'~'/day)'),las=1,ylim=c(min(final_cont_sum$mean-final_cont_sum$se)*0.9,max(final_cont_sum$mean+final_cont_sum$se)*1.25),type='n',xaxt='n',bty="l",cex.lab=1.25)
@@ -193,7 +193,7 @@ xcoordsigK$x = c(4.4,9.4,14.4,19.4,11.4,16.4,21.4,14.6,19.5,25.1,5.4,10.4,15.4,2
 xcoordsigK$y = c(8,6,12,10.5,4.8,7.6,6.5,5.5,7,14,9.5,7,14.5,10.5,11.5)
 xcoordsigK$sig = c(rep("***",15))
 
-png("kiteplotK.png", width = 9, height = 6, units = "in", res = 200)
+# png("kiteplotK.png", width = 9, height = 6, units = "in", res = 200)
 # svglite("kiteplotK.svg", width = 9, height = 6)
 
 par(mar=c(4,5,1,1))
@@ -326,16 +326,16 @@ for (i in 1:nrow(sig_eoc_fin)) {
 }
 
 # add opponent ID to bottom of plots
-eocplots[[5]] = eocplots[[5]] + scale_x_discrete(labels = labs$nams) + theme(axis.text.x = element_text(face="italic", angle=330, size=10))
+eocplots[[4]] = eocplots[[4]] + scale_x_discrete(labels = labs$nams) + theme(axis.text.x = element_text(face="italic", angle=330, size=10))
 eocplots[[10]] = eocplots[[10]] + scale_x_discrete(labels = labs$nams) + theme(axis.text.x = element_text(face="italic", angle=330, size=10))
 
 # assemble eoc by r plot
-eocplot_r=plot_grid(eocplots[[1]],eocplots[[2]],eocplots[[3]],eocplots[[4]],eocplots[[5]],nrow=5,ncol=1,align="v",axis="l",labels=labs$main,label_size=14,label_x=labs$x,label_y=labs$y,rel_heights= c(1,1,1,1,1.25))
+eocplot_r=plot_grid(eocplots[[2]],eocplots[[1]],eocplots[[3]],eocplots[[5]],eocplots[[4]],nrow=5,ncol=1,align="v",axis="l",labels=labs$main,label_size=14,label_y=labs$y,rel_heights= c(1,1,1,1,1.25)) #label_x=labs$x,
 # ggsave("eocplot_r.png", height = 11, width = 8)
 # ggsave("eocplot_r.svg", device = "svg", height = 11, width = 8)
 
 # assemble eoc by K plot
-eocplot_K=plot_grid(eocplots[[6]],eocplots[[7]],eocplots[[8]],eocplots[[9]],eocplots[[10]],nrow=5,ncol=1,align="v",axis="l",labels=labs$main,label_size=14,label_x=labs$x,label_y=labs$y,rel_heights= c(1,1,1,1,1.25))
+eocplot_K=plot_grid(eocplots[[6]],eocplots[[7]],eocplots[[8]],eocplots[[9]],eocplots[[10]],nrow=5,ncol=1,align="v",axis="l",labels=labs$main,label_size=14,label_y=labs$y,rel_heights= c(1,1,1,1,1.25))
 # ggsave("eocplot_K.png", height = 11, width = 8)
 # ggsave("eocplot_K.svg", device = "svg", height = 11, width = 8)
 
