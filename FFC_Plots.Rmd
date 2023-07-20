@@ -786,18 +786,9 @@ visExport(rt7, type = "pdf")
 
 #Phylogeny Plots
 ```{r phylo}
-# Phylogeny used for distance calculations
-FFC_nexbay$tip.label = c("Laccaria bicolor","Hebeloma cylindrosporum","Amanita muscaria","Paxillus involutus","Cenococcum geophilum")
-FFC_nexbay$node.label = c("",""," 1"," 1")
-# png("phyloplot.png", width = 1500, height = 1000, res = 200)
-plot.phylo(FFC_nexbay, show.node.label = TRUE, cex = 1.5)
-axisPhylo()
-
-dev.off()
-
 # phylogenetic distances for each pairing
 distbay = data.frame(pair_ID = c("CA","CH","CL","CP","HA","HP","LA","LH","LP","PA"), 
-                  dist = c(0.6632,0.69,0.649,0.464,0.434,0.498,0.393,0.205,0.457,0.471)) 
+                  dist = c(1.6105,1.5988,2.6059,1.6884,0.5784,0.4953,1.5855,1.4129,1.5025,0.6680))
 
 # Prepare data
 final_data_phylo = final_data_eoc[final_data_eoc$cont_ID==0,]
