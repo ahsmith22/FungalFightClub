@@ -30,19 +30,11 @@ Code is split into 4 markdown files that can be run independently:
 
 ### Plots
 
-- RAxML_Tree.nex: Phylogenetic tress derived by RAxML analysis
-
 - eocgenplot_r.png: Plot of eoc values across species
 
 - eocplot_r.png/svg: Figure 3. Plot of eoc values for each competitive treatment
 
-- infile.nex.con.tre: Phylogenetic tree file derived using ape package
-
 - kiteplot.png/svg: Figure 2. Plot summarizing growth rates of single and svs controls across species
-
-- mrBayesPost.nex: Phylogenetic tress derived by mrBayes analysis
-
-- phyloplot.png/svg: Phylogenetic tree plot derived using ape package
 
 - plot_EOCr_distbay.png/svg: Figure 5a. Plot of model results comparing eoc and phylogenetic distance
 
