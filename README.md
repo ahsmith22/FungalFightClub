@@ -30,6 +30,8 @@ Code is split into 4 markdown files that can be run independently:
 
 ### Plots
 
+- K supplement: folder containing replicate plots for analyses with K
+
 - eocgenplot_r.png: Plot of eoc values across species
 
 - eocplot_r.png/svg: Figure 3. Plot of eoc values for each competitive treatment
@@ -47,6 +49,8 @@ Code is split into 4 markdown files that can be run independently:
 - svsplot_r.png: Summary of svs control growth rates by species
 
 ### Tables
+
+- K supplement: folder containing replicate tables for analyses with K
 
 - Tuk_eocphdiff_table.htm: Supplemental Table 6. Significant TukeyHSD results comparing effects of pH on the EoC metric on growth rate
 
