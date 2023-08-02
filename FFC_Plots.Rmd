@@ -40,9 +40,6 @@ Tuk_finalK = read_csv("~/FungalFightClub/Tables/K Supplement/Tuk_finalK.csv")
 sig_svs_finK = read_csv("~/FungalFightClub/Tables/K Supplement/sig_svs_finK.csv")
 sig_eoc_finK = read_csv("~/FungalFightClub/Tables/K Supplement/sig_eoc_finK.csv")
 net_rt = read_csv("~/FungalFightClub/Data/FFC Treatments - Reaction Types.csv")
-FFC_nex = read.nexus("~/FungalFightClub/Plots/infile.nex.con.tre")
-FFC_nexbay = read.nexus("~/FungalFightClub/Plots/mrBayesPost.nex")
-FFC_nexrax = read.nexus("~/FungalFightClub/Plots/RAxML_Tree.nex")
 ffc_n_pair = read_csv("~/FungalFightClub/Data/ffc_n_pair.csv")
 
 # constants
