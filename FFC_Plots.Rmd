@@ -194,7 +194,7 @@ xcoordsigK$sig = c(rep("***",15))
 # svglite("kiteplotK.svg", width = 9, height = 6)
 
 par(mar=c(4,5,1,1))
-plot(xcoords,final_cont_sumK[final_cont_sumK$PH_ID==7,]$mean,xlab='',ylab=expression('colony size (cm'^'2)'),las=1,ylim=c(min(final_cont_sumK$mean-final_cont_sumK$se)*0.9,max(final_cont_sumK$mean+final_cont_sumK$se)*1.25),type='n',xaxt='n',bty="l",cex.lab=1.25)
+plot(xcoords,final_cont_sumK[final_cont_sumK$PH_ID==7,]$mean,xlab='',ylab=expression('colony size (cm'^'2'*')'),las=1,ylim=c(min(final_cont_sumK$mean-final_cont_sumK$se)*0.9,max(final_cont_sumK$mean+final_cont_sumK$se)*1.25),type='n',xaxt='n',bty="l",cex.lab=1.25)
 
 arrows(xcoords.R,final_cont_sumK[final_cont_sumK$PH_ID==7&final_cont_sumK$cont_ID=="v",]$mean,xcoords.L,final_cont_sumK[final_cont_sumK$PH_ID==7&final_cont_sumK$cont_ID=="s",]$mean,lwd=2,code=0,col='gray70')
 arrows(xcoords.R,final_cont_sumK[final_cont_sumK$PH_ID==5&final_cont_sumK$cont_ID=="v",]$mean,xcoords.L,final_cont_sumK[final_cont_sumK$PH_ID==5&final_cont_sumK$cont_ID=="s",]$mean,lwd=2,code=0,col='gray70')

@@ -31,8 +31,9 @@
 <text x='57.60' y='163.98' text-anchor='end' style='font-size: 12.00px; font-family: "Arial";' textLength='13.35px' lengthAdjust='spacingAndGlyphs'>15</text>
 <text x='57.60' y='77.02' text-anchor='end' style='font-size: 12.00px; font-family: "Arial";' textLength='13.35px' lengthAdjust='spacingAndGlyphs'>20</text>
 <polyline points='72.00,14.40 72.00,374.40 633.60,374.40 ' style='stroke-width: 0.75;' />
-<text transform='translate(22.70,250.76) rotate(-90)' style='font-size: 15.00px; font-family: "Arial";' textLength='103.38px' lengthAdjust='spacingAndGlyphs'>colony size (cm</text>
-<text transform='translate(15.25,147.38) rotate(-90)' style='font-size: 10.50px; font-family: "Arial";' textLength='9.34px' lengthAdjust='spacingAndGlyphs'>2)</text>
+<text transform='translate(22.70,251.51) rotate(-90)' style='font-size: 15.00px; font-family: "Arial";' textLength='103.38px' lengthAdjust='spacingAndGlyphs'>colony size (cm</text>
+<text transform='translate(15.25,148.13) rotate(-90)' style='font-size: 10.50px; font-family: "Arial";' textLength='5.84px' lengthAdjust='spacingAndGlyphs'>2</text>
+<text transform='translate(22.70,142.29) rotate(-90)' style='font-size: 15.00px; font-family: "Arial";' textLength='5.00px' lengthAdjust='spacingAndGlyphs'>)</text>
 </g>
 <defs>
   <clipPath id='cpNzIuMDB8NjMzLjYwfDE0LjQwfDM3NC40MA=='>
